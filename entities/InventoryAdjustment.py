@@ -1,3 +1,9 @@
+"""
+InventoryAdjustment <<Entity>>
+Defines the InventoryAdjustment class for tracking inventory changes.
+This class provides methods to create adjustment entries and retrieve recent adjustments for an item.
+"""
+
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from datetime import datetime

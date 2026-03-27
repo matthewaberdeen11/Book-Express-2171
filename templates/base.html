@@ -1,0 +1,82 @@
+<!-- Base Template -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Book Express{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2 class="logo">Book Express</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <div class="menu-section">
+                    <ul>
+                        <li><a href="/" class="menu-item {% if active_page == 'dashboard' %}active{% endif %}"><span class="icon"><i class="fas fa-home"></i></span> Dashboard</a></li>
+                        <li><a href="/search" class="menu-item {% if active_page == 'search' %}active{% endif %}"><span class="icon"><i class="fas fa-search"></i></span> Search Inventory</a></li>
+                        <li><a href="/inventory" class="menu-item {% if active_page == 'inventory' %}active{% endif %}"><span class="icon"><i class="fas fa-boxes"></i></span> Inventory</a></li>
+                        <li><a href="/alerts" class="menu-item {% if active_page == 'alerts' %}active{% endif %}"><span class="icon"><i class="fas fa-exclamation-circle"></i></span> Low Stock Alerts</a></li>
+                    </ul>
+                </div>
+                <div class="menu-section">
+                    <h3 class="menu-title">ADMIN</h3>
+                    <ul>
+                        <li><a href="/import" class="menu-item {% if active_page == 'import' %}active{% endif %}"><span class="icon"><i class="fas fa-upload"></i></span> Import Data</a></li>
+                        <li><a href="/logs" class="menu-item {% if active_page == 'logs' %}active{% endif %}"><span class="icon"><i class="fas fa-history"></i></span> Logs</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <button class="sidebar-toggle" id="sidebarToggle">&#9776;</button>
+                <div class="topbar-right">
+                    <div class="user-profile">
+                        <div class="user-avatar">S</div>
+                        <div class="user-info">
+                            <p class="user-name">Staff</p>
+                            <p class="user-role">Manager</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <section class="content-section active">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% for category, message in messages %}
+                        <div style="padding:.8rem 1rem;border-radius:6px;margin-bottom:1rem;font-size:.9rem;background:{% if category == 'error' %}rgba(239,68,68,0.15);color:#ef4444;border-left:4px solid #ef4444{% else %}rgba(16,185,129,0.15);color:#10b981;border-left:4px solid #10b981{% endif %}">
+                            <i class="fas fa-{% if category == 'error' %}exclamation-circle{% else %}check-circle{% endif %}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endwith %}
+                {% block content %}{% endblock %}
+            </section>
+        </main>
+    </div>
+    <script>
+        var toggle = document.getElementById('sidebarToggle');
+        var sidebar = document.querySelector('.sidebar');
+        var container = document.querySelector('.dashboard-container');
+        if (toggle) {
+            toggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                container.classList.toggle('sidebar-open');
+            });
+        }
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768 && !e.target.closest('.sidebar') && !e.target.closest('.sidebar-toggle')) {
+                sidebar.classList.add('collapsed');
+                container.classList.remove('sidebar-open');
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

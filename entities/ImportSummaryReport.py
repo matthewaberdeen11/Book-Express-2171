@@ -1,30 +1,48 @@
+"""
+ImportSummaryReport <<Entity>>
+Stores results of a CSV import operation.
+Maps to ImportSummaryReport on the class diagram.
+"""
+
+
 class ImportSummaryReport:
-    def __init__(self, total_records, successful_imports, failed_imports, error_details):
-        self.total_records = total_records
-        self.successful_imports = successful_imports
-        self.failed_imports = failed_imports
-        self.error_details = error_details
 
-    def addSuccessfulImport(self):
-        self.successful_imports += 1
-    
-    def addError(self, error_message):
-        self.failed_imports += 1
-        self.error_details.append(error_message)
-    
-    def addUnrecognizedItem(self, itemId):
-        self.failed_imports += 1
-        self.error_details.append(f"Unrecognized item ID: {itemId}")
-    
-    def getFormattedSummary(self):
-        return (f"Import Summary:\n"
-                f"Total Records: {self.total_records}\n"
-                f"Successful Imports: {self.successful_imports}\n"
-                f"Failed Imports: {self.failed_imports}\n"
-                f"Error Details: {', '.join(self.error_details)}")
+    def __init__(self):
+        self.total_processed: int = 0
+        self.successful_updates: list = []
+        self.unrecognised_items: list = []
+        self.errors: list = []
+        self.price_discrepancies: list = []
 
-    def __str__(self):
-        return (f"ImportSummaryReport(total_records={self.total_records}, "
-                f"successful_imports={self.successful_imports}, "
-                f"failed_imports={self.failed_imports}, "
-                f"error_details={self.error_details})")
+    def add_success(self, item_id: str, item_name: str = "", quantity_sold: int = 0) -> None:
+        self.successful_updates.append({
+            "item_id": item_id, "item_name": item_name, "quantity_sold": quantity_sold
+        })
+
+    def add_error(self, error: str) -> None:
+        self.errors.append(error)
+
+    def add_unrecognised(self, item_id: str) -> None:
+        self.unrecognised_items.append(item_id)
+
+    def get_formatted_summary(self) -> str:
+        return (f"=== Import Summary ===\n"
+                f"Total Processed: {self.total_processed}\n"
+                f"Successful: {len(self.successful_updates)}\n"
+                f"Unrecognised: {len(self.unrecognised_items)}\n"
+                f"Errors: {len(self.errors)}")
+
+    def to_dict(self) -> dict:
+        return {
+            "total_processed": self.total_processed,
+            "successful_updates": self.successful_updates,
+            "unrecognised_items": self.unrecognised_items,
+            "errors": self.errors,
+            "price_discrepancies": self.price_discrepancies,
+            "success_count": len(self.successful_updates),
+            "error_count": len(self.errors),
+            "unrecognised_count": len(self.unrecognised_items)
+        }
+
+    def __repr__(self):
+        return f"ImportSummaryReport(processed={self.total_processed}, success={len(self.successful_updates)})"

@@ -1,0 +1,37 @@
+<!-- Item Detail Template -->
+
+{% extends "base.html" %}
+{% set active_page = 'search' %}
+{% block title %}{{ item.item_name }} - Book Express{% endblock %}
+{% block content %}
+<div style="margin-bottom:1rem"><a href="/search" style="color:var(--primary-color);text-decoration:none;font-size:.9rem"><i class="fas fa-arrow-left"></i> Back to Search</a></div>
+<div class="section-header">
+    <h1>{{ item.item_name }}</h1>
+    <p>Item Details &mdash; {{ item.item_id }}</p>
+</div>
+<div class="detail-grid">
+    <div class="detail-card">
+        <h2><i class="fas fa-book"></i> Book Information</h2>
+        <div class="detail-row"><span class="detail-label">Item ID</span><span class="detail-value" style="color:var(--primary-color)">{{ item.item_id }}</span></div>
+        <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">{{ item.item_name }}</span></div>
+        <div class="detail-row"><span class="detail-label">Grade</span><span class="detail-value">{{ item.grade }}</span></div>
+        <div class="detail-row"><span class="detail-label">Subject</span><span class="detail-value">{{ item.subject }}</span></div>
+        <div class="detail-row"><span class="detail-label">Unit Price</span><span class="detail-value">JMD {{ "%.2f"|format(item.unit_price) }}</span></div>
+    </div>
+    <div class="detail-card">
+        <h2><i class="fas fa-boxes"></i> Stock Status</h2>
+        <div style="text-align:center;padding:1rem 0">
+            <div class="stock-display {% if item.stock_quantity == 0 %}out-of-stock{% elif item.stock_quantity <= item.reorder_threshold %}low-stock{% else %}in-stock{% endif %}">{{ item.stock_quantity }}</div>
+            <div style="font-size:.9rem;color:var(--text-secondary);margin-bottom:1rem">units in stock</div>
+            {% if item.availability_status == "Out of Stock" %}<span class="badge badge-red" style="font-size:1rem;padding:6px 16px">Out of Stock</span>
+            {% elif item.availability_status == "Low Stock" %}<span class="badge badge-yellow" style="font-size:1rem;padding:6px 16px">Low Stock</span>
+            {% else %}<span class="badge badge-green" style="font-size:1rem;padding:6px 16px">In Stock</span>{% endif %}
+            <div style="margin-top:1rem;font-size:.85rem;color:var(--text-secondary)">Reorder threshold: <strong style="color:var(--text-primary)">{{ item.reorder_threshold }}</strong> units</div>
+        </div>
+    </div>
+</div>
+<div style="display:flex;gap:.5rem;margin-top:1.5rem">
+    <a href="/search" class="btn-secondary"><i class="fas fa-search"></i> Back to Search</a>
+    <a href="/" class="btn-secondary"><i class="fas fa-home"></i> Dashboard</a>
+</div>
+{% endblock %}

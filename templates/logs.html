@@ -1,0 +1,54 @@
+<!-- Logs Template -->
+
+{% extends "base.html" %}
+{% set active_page = 'logs' %}
+{% block title %}Logs - Book Express{% endblock %}
+{% block content %}
+<div class="section-header">
+    <h1>System Logs</h1>
+    <p>Import history and audit trail</p>
+</div>
+<div class="catalogue-container" style="margin-bottom:1.5rem">
+    <h2 style="margin-bottom:16px"><i class="fas fa-upload"></i> Import Logs (UC-001)</h2>
+    {% if import_logs %}
+    <div class="catalogue-table-wrapper">
+        <table class="catalogue-table">
+            <thead><tr><th>#</th><th>Timestamp</th><th>User</th><th>Records</th><th>Errors</th><th>Sales Total (JMD)</th></tr></thead>
+            <tbody>
+                {% for log in import_logs %}
+                <tr>
+                    <td>{{ log.log_id }}</td><td>{{ log.timestamp[:19] }}</td><td>{{ log.user_id }}</td>
+                    <td>{{ log.records_processed }}</td>
+                    <td>{% if log.error_count > 0 %}<span class="badge badge-red">{{ log.error_count }}</span>{% else %}<span class="badge badge-green">0</span>{% endif %}</td>
+                    <td>{{ "%.2f"|format(log.total_sales_amount) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color:var(--text-secondary);text-align:center;padding:2rem"><i class="fas fa-inbox"></i> No imports performed yet.</p>
+    {% endif %}
+</div>
+<div class="catalogue-container">
+    <h2 style="margin-bottom:16px"><i class="fas fa-search"></i> Audit Logs (UC-002)</h2>
+    {% if audit_logs %}
+    <div class="catalogue-table-wrapper">
+        <table class="catalogue-table">
+            <thead><tr><th>#</th><th>Timestamp</th><th>User</th><th>Action</th><th>Details</th></tr></thead>
+            <tbody>
+                {% for log in audit_logs %}
+                <tr>
+                    <td>{{ log.log_id }}</td><td>{{ log.timestamp[:19] }}</td><td>{{ log.user_id }}</td>
+                    <td><span class="badge badge-blue">{{ log.action }}</span></td>
+                    <td style="font-size:.8rem;color:var(--text-secondary)">{{ log.details }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color:var(--text-secondary);text-align:center;padding:2rem"><i class="fas fa-inbox"></i> No audit entries yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

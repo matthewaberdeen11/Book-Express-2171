@@ -1,0 +1,43 @@
+<!-- Report Template -->
+
+{% extends "base.html" %}
+{% set active_page = 'import' %}
+{% block title %}Import Report - Book Express{% endblock %}
+{% block content %}
+<div class="section-header">
+    <h1>Import Summary Report</h1>
+    <p>Results for: {{ filename }}</p>
+</div>
+<div class="stat-grid">
+    <div class="stat-card"><div class="stat-value">{{ report.total_processed }}</div><div class="stat-label">Records Processed</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--success-color)">{{ report.success_count }}</div><div class="stat-label">Successful</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--warning-color)">{{ report.unrecognised_count }}</div><div class="stat-label">Unrecognised</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--danger-color)">{{ report.error_count }}</div><div class="stat-label">Errors</div></div>
+</div>
+{% if report.successful_updates %}
+<div class="catalogue-container" style="margin-bottom:1rem">
+    <h2 style="color:var(--success-color);margin-bottom:12px"><i class="fas fa-check-circle"></i> Successful Updates</h2>
+    <table class="catalogue-table">
+        <thead><tr><th>Item ID</th><th>Name</th><th>Qty Sold</th></tr></thead>
+        <tbody>{% for item in report.successful_updates %}<tr><td>{{ item.item_id }}</td><td>{{ item.item_name }}</td><td>{{ item.quantity_sold }}</td></tr>{% endfor %}</tbody>
+    </table>
+</div>
+{% endif %}
+{% if report.unrecognised_items %}
+<div class="catalogue-container" style="margin-bottom:1rem">
+    <h2 style="color:var(--warning-color);margin-bottom:12px"><i class="fas fa-question-circle"></i> Unrecognised Items</h2>
+    {% for uid in report.unrecognised_items %}<p style="padding:.4rem 0;border-bottom:1px solid var(--border-color)"><span class="badge badge-yellow">Unknown</span> <code style="color:var(--primary-color)">{{ uid }}</code></p>{% endfor %}
+</div>
+{% endif %}
+{% if report.errors %}
+<div class="catalogue-container" style="margin-bottom:1rem">
+    <h2 style="color:var(--danger-color);margin-bottom:12px"><i class="fas fa-times-circle"></i> Errors</h2>
+    {% for err in report.errors %}<p style="padding:.4rem 0;font-size:.85rem;border-bottom:1px solid var(--border-color)"><span class="badge badge-red">Error</span> {{ err }}</p>{% endfor %}
+</div>
+{% endif %}
+<div style="display:flex;gap:.5rem;margin-top:1.5rem">
+    <a href="/import" class="btn-primary"><i class="fas fa-upload"></i> Import Another</a>
+    <a href="/search" class="btn-secondary"><i class="fas fa-search"></i> Search Inventory</a>
+    <a href="/" class="btn-secondary"><i class="fas fa-home"></i> Dashboard</a>
+</div>
+{% endblock %}

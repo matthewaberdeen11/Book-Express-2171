@@ -1,0 +1,38 @@
+<!-- Alerts Template -->
+
+{% extends "base.html" %}
+{% set active_page = 'alerts' %}
+{% block title %}Low Stock Alerts - Book Express{% endblock %}
+{% block content %}
+<div class="section-header">
+    <h1>Low Stock Alerts</h1>
+    <p>Items that have fallen below their reorder thresholds</p>
+</div>
+<div class="catalogue-container">
+    {% if alerts %}
+    <div class="catalogue-table-wrapper">
+        <table class="alerts-table">
+            <thead><tr><th>Item ID</th><th>Name</th><th>Current Stock</th><th>Threshold</th><th>Status</th><th>Date Created</th></tr></thead>
+            <tbody>
+                {% for a in alerts %}
+                <tr>
+                    <td><a href="/item/{{ a.item_id }}" style="color:var(--primary-color);text-decoration:none">{{ a.item_id }}</a></td>
+                    <td>{{ a.item_name }}</td>
+                    <td style="color:var(--danger-color);font-weight:600">{{ a.current_quantity }}</td>
+                    <td>{{ a.threshold }}</td>
+                    <td><span class="alert-status alert-active">{{ a.status }}</span></td>
+                    <td>{{ a.created_at[:19] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:60px 20px;color:var(--text-secondary)">
+        <i class="fas fa-check-circle" style="font-size:3rem;margin-bottom:1rem;display:block;color:var(--success-color)"></i>
+        <p style="font-size:1.1rem">No active low stock alerts.</p>
+        <p style="font-size:.85rem;margin-top:.5rem">All items are above their reorder thresholds.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

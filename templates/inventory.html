@@ -1,0 +1,28 @@
+<!-- Inventory Template -->
+
+{% extends "base.html" %}
+{% set active_page = 'inventory' %}
+{% block title %}Inventory - Book Express{% endblock %}
+{% block content %}
+<div class="section-header">
+    <h1>Inventory</h1>
+    <p>Current catalogue and stock levels</p>
+</div>
+<div class="catalogue-container">
+    <div class="catalogue-table-wrapper">
+        <table class="catalogue-table">
+            <thead><tr><th>ID</th><th>Name</th><th>Grade</th><th>Subject</th><th>Price (JMD)</th><th>Stock</th><th>Threshold</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><a href="/item/{{ item.item_id }}" style="color:var(--primary-color);text-decoration:none">{{ item.item_id }}</a></td>
+                    <td>{{ item.item_name }}</td><td>{{ item.grade }}</td><td>{{ item.subject }}</td>
+                    <td>{{ "%.2f"|format(item.unit_price) }}</td><td>{{ item.stock_quantity }}</td><td>{{ item.reorder_threshold }}</td>
+                    <td>{% if item.stock_quantity == 0 %}<span class="badge badge-red">Out of Stock</span>{% elif item.stock_quantity <= item.reorder_threshold %}<span class="badge badge-yellow">Low Stock</span>{% else %}<span class="badge badge-green">In Stock</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

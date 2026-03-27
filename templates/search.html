@@ -1,0 +1,65 @@
+<!-- Search Template -->
+
+{% extends "base.html" %}
+{% set active_page = 'search' %}
+{% block title %}Search Inventory - Book Express{% endblock %}
+{% block content %}
+<div class="catalogue-header">
+    <h1>Search Inventory</h1>
+</div>
+<div class="catalogue-container">
+    <div class="catalogue-toolbar">
+        <form action="/search" method="GET" style="display:flex;gap:12px;flex:1;flex-wrap:wrap;align-items:end">
+            <div class="search-section">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" name="q" class="search-box" placeholder="Search by Item ID, Title, Grade, Subject..." value="{{ query }}">
+            </div>
+            <button type="submit" class="btn-primary"><i class="fas fa-search"></i> Search</button>
+        </form>
+    </div>
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+        <form action="/search" method="GET">
+            <select name="grade" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Grade Levels</option>
+                {% for g in grades %}<option value="{{ g }}" {% if g == selected_grade %}selected{% endif %}>{{ g }}</option>{% endfor %}
+            </select>
+        </form>
+        <form action="/search" method="GET">
+            <select name="subject" class="filter-select" onchange="this.form.submit()">
+                <option value="">All Subjects</option>
+                {% for s in subjects %}<option value="{{ s }}" {% if s == selected_subject %}selected{% endif %}>{{ s }}</option>{% endfor %}
+            </select>
+        </form>
+    </div>
+    {% if has_searched %}
+    <h3 style="margin-bottom:12px;color:var(--text-secondary)">{{ results|length }} result{{ 's' if results|length != 1 }} found</h3>
+    <div class="catalogue-table-wrapper">
+        <table class="catalogue-table">
+            <thead><tr><th>Item ID</th><th>Title</th><th>Grade</th><th>Subject</th><th>Price (JMD)</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+                {% if results %}
+                {% for item in results %}
+                <tr>
+                    <td>{{ item.item_id }}</td>
+                    <td class="item-title" style="cursor:pointer;color:var(--primary-color)" onclick="window.location='/item/{{ item.item_id }}'">{{ item.item_name }}</td>
+                    <td>{{ item.grade }}</td><td>{{ item.subject }}</td>
+                    <td>{{ "%.2f"|format(item.unit_price) }}</td><td>{{ item.stock_quantity }}</td>
+                    <td>{% if item.stock_quantity == 0 %}<span class="badge badge-red">Out of Stock</span>{% elif item.stock_quantity <= item.reorder_threshold %}<span class="badge badge-yellow">Low Stock</span>{% else %}<span class="badge badge-green">In Stock</span>{% endif %}</td>
+                    <td><a href="/item/{{ item.item_id }}" class="btn-secondary" style="padding:6px 12px;font-size:12px"><i class="fas fa-eye"></i> View</a></td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary)"><i class="fas fa-search" style="font-size:2rem;margin-bottom:.5rem;display:block"></i>No items found matching your search.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:60px 20px;color:var(--text-secondary)">
+        <i class="fas fa-search" style="font-size:3rem;margin-bottom:1rem;display:block;color:var(--border-color)"></i>
+        <p style="font-size:1.1rem">Enter a search term or select a filter to find items.</p>
+        <p style="font-size:.85rem;margin-top:.5rem">You can search by item ID, book title, grade level, or subject.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

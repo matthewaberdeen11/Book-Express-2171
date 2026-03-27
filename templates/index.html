@@ -1,0 +1,65 @@
+<!-- Index Template -->
+
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+{% block title %}Dashboard - Book Express{% endblock %}
+{% block content %}
+<div class="section-header">
+    <h1>Dashboard</h1>
+    <p>Welcome back! Here's a summary of your inventory.</p>
+</div>
+<div class="cards-container">
+    <div class="card">
+        <div class="card-icon"><i class="fas fa-box"></i></div>
+        <div class="card-content">
+            <p class="card-label">Total Items</p>
+            <p class="card-value">{{ items|length }}</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="card-content">
+            <p class="card-label">In Stock</p>
+            <p class="card-value">{{ items|selectattr('stock_quantity', 'gt', 0)|list|length }}</p>
+            <p class="card-change positive">Available items</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="card-content">
+            <p class="card-label">Low Stock Alerts</p>
+            <p class="card-value">{{ alerts|length }}</p>
+            <p class="card-change warning">Needs re-ordering</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-icon"><i class="fas fa-history"></i></div>
+        <div class="card-content">
+            <p class="card-label">Recent Imports</p>
+            <p class="card-value">{{ logs|length }}</p>
+        </div>
+    </div>
+</div>
+<div style="display:flex;gap:12px;margin-bottom:24px">
+    <a href="/import" class="btn-primary"><i class="fas fa-upload"></i> Import CSV</a>
+    <a href="/search" class="btn-secondary"><i class="fas fa-search"></i> Search Inventory</a>
+</div>
+<div class="catalogue-container">
+    <h2 style="margin-bottom:16px">Inventory Overview</h2>
+    <div class="catalogue-table-wrapper">
+        <table class="catalogue-table">
+            <thead><tr><th>ID</th><th>Name</th><th>Grade</th><th>Price (JMD)</th><th>Stock</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><a href="/item/{{ item.item_id }}" style="color:var(--primary-color);text-decoration:none">{{ item.item_id }}</a></td>
+                    <td>{{ item.item_name }}</td><td>{{ item.grade }}</td>
+                    <td>{{ "%.2f"|format(item.unit_price) }}</td><td>{{ item.stock_quantity }}</td>
+                    <td>{% if item.stock_quantity == 0 %}<span class="badge badge-red">Out of Stock</span>{% elif item.stock_quantity <= item.reorder_threshold %}<span class="badge badge-yellow">Low Stock</span>{% else %}<span class="badge badge-green">In Stock</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

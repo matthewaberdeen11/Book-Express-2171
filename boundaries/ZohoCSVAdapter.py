@@ -32,6 +32,7 @@ class ZohoCSVAdapter:
                 try:
                     item_id = row.get("item_id", "").strip()
                     qty_raw = row.get("quantity_sold", "").strip()
+                    price_raw = row.get("average_price", "").strip()
                     if not item_id:
                         self.errors.append(f"Row {i}: missing item_id")
                         continue
@@ -41,6 +42,7 @@ class ZohoCSVAdapter:
                     records.append({
                         "item_id": item_id,
                         "quantity_sold": int(float(qty_raw)),
+                        "average_price": float(price_raw) if price_raw else 0.0
                     })
                 except ValueError:
                     self.errors.append(f"Row {i}: invalid quantity_sold '{qty_raw}'")

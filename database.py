@@ -163,6 +163,18 @@ def init_db():
         )
     """)
 
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS inventory_adjustment (
+            adjustment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_id TEXT NOT NULL,
+            type TEXT NOT NULL,
+            quantity_changed INTEGER NOT NULL,
+            message TEXT,
+            timestamp TEXT NOT NULL,
+            FOREIGN KEY (item_id) REFERENCES inventory_item(item_id)
+            )
+    """)
+
     # Seed sample data if empty
     c.execute("SELECT COUNT(*) FROM inventory_item")
     if c.fetchone()[0] == 0:
@@ -171,7 +183,7 @@ def init_db():
         PRICE_MIN = 1000
         PRICE_MAX = 5000
 
-        QUANTITY_MIN = 0
+        QUANTITY_MIN = 30
         QUANTITY_MAX = 200
 
         REORDER_MIN = 5

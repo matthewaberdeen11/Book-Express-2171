@@ -15,6 +15,7 @@ from entities.InventoryItem import InventoryItem
 from entities.ImportLog import ImportLog
 from entities.ImportSummaryReport import ImportSummaryReport
 from entities.LowStockAlert import LowStockAlert
+from entities.InventoryAdjustment import InventoryAdjustment
 
 
 class ImportController:
@@ -71,12 +72,20 @@ class ImportController:
             if not self.deduct_stock(item, qty):
                 report.add_error(f"Cannot deduct {qty} from {item_id} (stock: {item.stock_quantity})")
                 continue
+            else:
+                self.make_adjustment_history(item, qty)
+
+            # Step x: Check price discrepancy
+            if self.check_price_discrepancy(item, record["average_price"]) and record["average_price"] > 0:
+                report.add_error(f"Price discrepancy for {item_id}: CSV ${record['average_price']} vs DB ${item.unit_price}.")
 
             total_sales += item.unit_price * qty
             report.add_success(item_id, item.item_name, qty)
 
             # Step 4: Check low stock
             self.check_low_stock(item)
+
+            # Step x: Add adjustment history
 
         # Step 6: Log import
         self.log_import(report, file_content, total_sales)
@@ -89,6 +98,16 @@ class ImportController:
     def deduct_stock(self, item: InventoryItem, qty: int) -> bool:
         """Deduct quantity from item stock."""
         return item.deduct_quantity(qty)
+    
+    def make_adjustment_history(self, item: InventoryItem, qty: int) -> None:
+        """Create an adjustment history entry for this stock change."""
+        adjustment = InventoryAdjustment(
+            item_id=item.item_id,
+            type="sale",
+            quantity_changed=-qty,
+            message=f"Deducted {qty} for a sale on {self.import_date}"
+        )
+        adjustment.create_entry()
 
     def check_price_discrepancy(self, item: InventoryItem, csv_price: float) -> bool:
         """Check if price differs by more than 10%."""

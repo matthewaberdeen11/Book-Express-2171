@@ -29,6 +29,25 @@
             <div style="margin-top:1rem;font-size:.85rem;color:var(--text-secondary)">Reorder threshold: <strong style="color:var(--text-primary)">{{ item.reorder_threshold }}</strong> units</div>
         </div>
     </div>
+    <div class="detail-card">
+        <h2><i class="fas fa-history"></i> History</h2>
+        {% if item.history %}
+            {% for entry in item.history %}
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <span class="badge">{{ entry.type }}</span>
+                    </div>
+                    <div class="detail-value" style="text-align:left; flex:1; margin-left:1rem;">
+                        {{ entry.message }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="detail-row">
+                <div class="detail-value">No history available</div>
+            </div>
+        {% endif %}
+    </div>
 </div>
 <div style="display:flex;gap:.5rem;margin-top:1.5rem">
     <a href="/search" class="btn-secondary"><i class="fas fa-search"></i> Back to Search</a>

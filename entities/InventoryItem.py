@@ -159,6 +159,21 @@ class InventoryItem:
             subject=r["subject"], availability_status=r["availability_status"]
         ) for r in rows]
 
+    @staticmethod
+    def create_new(item_id: str, item_name: str, unit_price: float,
+                   stock_quantity: int = 0, reorder_threshold: int = 5,
+                   grade: str = "", subject: str = ""):
+        """Insert a brand-new inventory item into the database."""
+        conn = get_connection()
+        conn.execute("""
+            INSERT INTO inventory_item
+                (item_id, item_name, unit_price, stock_quantity, reorder_threshold, grade, subject, availability_status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (item_id, item_name, unit_price, stock_quantity, reorder_threshold, grade, subject, "In Stock"))
+        conn.commit()
+        conn.close()
+        return InventoryItem(item_id, item_name, unit_price, stock_quantity, reorder_threshold, grade, subject)
+
     def to_dict(self) -> dict:
         return self.get_details()
 

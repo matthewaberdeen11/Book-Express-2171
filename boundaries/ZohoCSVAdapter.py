@@ -18,32 +18,52 @@ class ZohoCSVAdapter:
             print(f"\n[Error] An unexpected error occurred: {e}")
             return []
 
+    REQUIRED_COLUMNS = {"item_id", "item_name", "quantity_sold"}
+
     def extract_records(self, file_content: str) -> list:
         """
-        Parse CSV content string into a list of dicts.
-        Expected columns: item_id, quantity_sold (and optionally others).
-        Called by ImportController.process_import().
+        Parse ZOHO CSV content into a list of dicts.
+        Expected columns: item_id, item_name, unit, is_combo_product,
+                          quantity_sold, amount, average_price.
+        Required columns: item_id, item_name, quantity_sold.
         """
         self.errors = []
         records = []
         try:
             reader = csv.DictReader(io.StringIO(file_content))
+            # Validate required columns exist
+            if reader.fieldnames:
+                missing = self.REQUIRED_COLUMNS - set(reader.fieldnames)
+                if missing:
+                    raise ValueError(f"Missing required columns: {', '.join(sorted(missing))}")
+
             for i, row in enumerate(reader, start=1):
                 try:
                     item_id = row.get("item_id", "").strip()
+                    item_name = row.get("item_name", "").strip()
                     qty_raw = row.get("quantity_sold", "").strip()
+
                     if not item_id:
                         self.errors.append(f"Row {i}: missing item_id")
+                        continue
+                    if not item_name:
+                        self.errors.append(f"Row {i}: missing item_name")
                         continue
                     if not qty_raw:
                         self.errors.append(f"Row {i}: missing quantity_sold")
                         continue
+
                     records.append({
                         "item_id": item_id,
+                        "item_name": item_name,
+                        "unit": row.get("unit", "").strip(),
+                        "is_combo_product": row.get("is_combo_product", "").strip().lower() == "true",
                         "quantity_sold": int(float(qty_raw)),
+                        "amount": float(row.get("amount", "0").strip() or "0"),
+                        "average_price": float(row.get("average_price", "0").strip() or "0"),
                     })
                 except ValueError:
-                    self.errors.append(f"Row {i}: invalid quantity_sold '{qty_raw}'")
+                    self.errors.append(f"Row {i}: invalid numeric value")
         except Exception as e:
             raise ValueError(f"Failed to parse CSV: {e}")
         return records

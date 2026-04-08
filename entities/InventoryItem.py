@@ -179,3 +179,14 @@ class InventoryItem:
 
     def __repr__(self):
         return f"InventoryItem({self.item_id}, '{self.item_name}', qty={self.stock_quantity})"
+
+    def create(self):
+            """Insert a new item into the database."""
+            conn = get_connection()
+            conn.execute("""
+                INSERT INTO inventory_item (item_id, item_name, unit_price, stock_quantity, reorder_threshold, grade, subject, availability_status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (self.item_id, self.item_name, self.unit_price, self.stock_quantity,
+                self.reorder_threshold, self.grade, self.subject, self.availability_status))
+            conn.commit()
+            conn.close()

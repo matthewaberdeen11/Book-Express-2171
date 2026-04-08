@@ -19,7 +19,7 @@ def get_connection():
 
 
 def generate_inventory_items(
-    record_count=50000,
+    record_count=100,
     price_min=1000,
     price_max=5000,
     quantity_min=0,
@@ -212,7 +212,7 @@ def init_db():
     # Seed sample data if empty
     c.execute("SELECT COUNT(*) FROM inventory_item")
     if c.fetchone()[0] == 0:
-        RECORD_COUNT = 50000
+        RECORD_COUNT = 28
 
         PRICE_MIN = 1000
         PRICE_MAX = 5000

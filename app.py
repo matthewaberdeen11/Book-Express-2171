@@ -239,6 +239,10 @@ def remove_item_from_favourites(item_id):
 @app.route("/inventory")
 def inventory():
     items = InventoryItem.get_all()
+    favourites = FavouriteItem.get_all_ids()
+    for item in items:
+        item.is_favourited = item.item_id in favourites
+        
     return render_template("inventory.html", items=items)
 
 

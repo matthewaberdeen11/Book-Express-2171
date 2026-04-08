@@ -17,8 +17,7 @@
 <form method="POST" action="{{ url_for('edit_item', item_id=item.item_id) }}">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start">
         
-        <!-- Catalogue Information -->
-            <div class="detail-card" style="height:100%">
+        <div class="detail-card" style="height:100%">
             <h2><i class="fas fa-edit"></i> Catalogue Information</h2>
 
             <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:1rem">
@@ -42,7 +41,7 @@
                     value="{{ item.item_name }}"
                     required
                     maxlength="255"
-                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
                 >
             </div>
 
@@ -55,7 +54,7 @@
                     value="{{ item.grade }}"
                     required
                     maxlength="50"
-                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
                 >
             </div>
 
@@ -68,11 +67,11 @@
                     value="{{ item.subject }}"
                     required
                     maxlength="100"
-                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
                 >
             </div>
 
-            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:0">
+            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:1rem">
                 <label for="unit_price" class="detail-label">Unit Price (JMD)</label>
                 <input
                     type="number"
@@ -82,16 +81,16 @@
                     step="0.01"
                     min="0"
                     required
-                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
                 >
             </div>
 
-            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:1rem">
+            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:0">
                 <label for="is_archived" class="detail-label">Record Status</label>
                 <select
                     id="is_archived"
                     name="is_archived"
-                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
                 >
                     <option value="0" {% if not item.is_archived %}selected{% endif %}>Active</option>
                     <option value="1" {% if item.is_archived %}selected{% endif %}>Archived</option>
@@ -102,7 +101,6 @@
             </div>
         </div>
 
-        <!-- Manual Inventory Adjustment -->
         <div class="detail-card" style="height:100%">
             <h2><i class="fas fa-boxes"></i> Manual Inventory Adjustment</h2>
 
@@ -120,7 +118,7 @@
                     value="0"
                     step="1"
                     placeholder="e.g. 5 or -3"
-                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
                 >
                 <small style="color:var(--text-secondary)">
                     Enter a positive whole number to increase stock or a negative whole number to decrease stock.
@@ -132,7 +130,7 @@
                 <select
                     id="adjustment_reason"
                     name="adjustment_reason"
-                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
                 >
                     <option value="">Select a reason</option>
                     <option value="Damaged">Damaged</option>
@@ -151,12 +149,11 @@
                     rows="6"
                     maxlength="500"
                     placeholder="Optional notes (maximum 500 characters)"
-                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;resize:vertical"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;resize:vertical;background:rgba(0,102,255,.1);color:var(--text-primary)"
                 ></textarea>
             </div>
         </div>
 
-        <!-- Full-width informational block -->
         <div class="detail-card" style="grid-column:1 / -1;background:rgba(255,193,7,.08)">
             <h2><i class="fas fa-info-circle"></i> Archival Rule</h2>
             <p style="margin:0;color:var(--text-secondary)">
@@ -238,7 +235,6 @@
         </div>
         {% endif %}
 
-        <!-- Buttons below both sections -->
         <div style="grid-column:1 / -1;display:flex;justify-content:flex-end;gap:.75rem;flex-wrap:wrap;margin-top:.25rem">
             <a href="{{ url_for('item_detail', item_id=item.item_id) }}" class="btn-secondary">
                 <i class="fas fa-times"></i> Cancel

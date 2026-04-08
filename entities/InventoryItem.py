@@ -27,7 +27,7 @@ class InventoryItem:
         self.subject = subject
         self.availability_status = availability_status
 
-    # ---- UC-001 Methods ----
+    #UC-001 Methods
 
     def deduct_quantity(self, amount: int) -> bool:
         """Deduct stock. Returns False if insufficient."""
@@ -47,7 +47,7 @@ class InventoryItem:
         self.unit_price = new_price
         self._save()
 
-    # ---- UC-002 Methods ----
+    #UC-002 Methods
 
     def is_in_stock(self) -> bool:
         """Check if item has any stock available."""
@@ -74,7 +74,7 @@ class InventoryItem:
                 q in self.grade.lower() or
                 q in self.subject.lower())
 
-    # ---- Shared Methods ----
+    #shared methods
 
     def get_availability_status(self) -> str:
         """Return current availability status string."""
@@ -99,7 +99,7 @@ class InventoryItem:
         conn.commit()
         conn.close()
 
-    # ---- Static Finders ----
+    # ---- Static methods for database access ----
 
     @staticmethod
     def find_by_id(item_id: str):

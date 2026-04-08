@@ -39,30 +39,23 @@
                 {% if rec.amount %} | Amount: ${{ "%.2f"|format(rec.amount) }}{% endif %}
             </span>
         </div>
-        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center" id="actions-{{ rec.item_id }}">
             <!-- Auto-Create -->
-            <form action="/import/create-item" method="POST" style="display:inline">
-                <input type="hidden" name="item_id" value="{{ rec.item_id }}">
-                <input type="hidden" name="item_name" value="{{ rec.item_name }}">
-                <input type="hidden" name="average_price" value="{{ rec.average_price }}">
-                <input type="hidden" name="quantity_sold" value="{{ rec.quantity_sold }}">
-                <button type="submit" class="btn-primary" style="font-size:.8rem;padding:6px 12px">
-                    <i class="fas fa-plus-circle"></i> Auto-Create
-                </button>
-            </form>
+            <button class="btn-primary" style="font-size:.8rem;padding:6px 12px"
+                    onclick="handleAction(this, '/import/create-item', {item_id:'{{ rec.item_id }}', item_name:'{{ rec.item_name }}', average_price:'{{ rec.average_price }}', quantity_sold:'{{ rec.quantity_sold }}'})">
+                <i class="fas fa-plus-circle"></i> Auto-Create
+            </button>
             <!-- Map to Existing -->
-            <form action="/import/map-item" method="POST" style="display:inline-flex;align-items:center;gap:4px">
-                <input type="hidden" name="quantity_sold" value="{{ rec.quantity_sold }}">
-                <select name="existing_id" style="padding:5px 8px;border:1px solid var(--border-color);border-radius:6px;font-size:.8rem">
-                    <option value="">Map to…</option>
-                    {% for item in all_items %}
-                    <option value="{{ item.item_id }}">{{ item.item_id }} - {{ item.item_name }}</option>
-                    {% endfor %}
-                </select>
-                <button type="submit" class="btn-secondary" style="font-size:.8rem;padding:6px 12px">
-                    <i class="fas fa-link"></i> Map
-                </button>
-            </form>
+            <select id="map-select-{{ rec.item_id }}" style="padding:5px 8px;border:1px solid var(--border-color);border-radius:6px;font-size:.8rem">
+                <option value="">Map to…</option>
+                {% for item in all_items %}
+                <option value="{{ item.item_id }}">{{ item.item_id }} - {{ item.item_name }}</option>
+                {% endfor %}
+            </select>
+            <button class="btn-secondary" style="font-size:.8rem;padding:6px 12px"
+                    onclick="handleMap(this, '{{ rec.item_id }}', '{{ rec.quantity_sold }}')">
+                <i class="fas fa-link"></i> Map
+            </button>
         </div>
     </div>
     {% endfor %}
@@ -92,4 +85,32 @@
     <a href="/search" class="btn-secondary"><i class="fas fa-search"></i> Search Inventory</a>
     <a href="/" class="btn-secondary"><i class="fas fa-home"></i> Dashboard</a>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function handleAction(btn, url, data) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+    fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams(data)
+    }).then(r => r.json()).then(res => {
+        var row = btn.closest('[id^=actions-]');
+        if (res.success) {
+            row.innerHTML = '<span class="badge badge-green" style="padding:6px 12px"><i class="fas fa-check"></i> ' + res.message + '</span>';
+        } else {
+            row.innerHTML = '<span class="badge badge-red" style="padding:6px 12px"><i class="fas fa-times"></i> ' + res.message + '</span>';
+        }
+    }).catch(() => {
+        btn.innerHTML = '<i class="fas fa-times"></i> Error';
+        btn.disabled = false;
+    });
+}
+function handleMap(btn, itemId, qty) {
+    var sel = document.getElementById('map-select-' + itemId);
+    if (!sel.value) { alert('Please select an item to map to.'); return; }
+    handleAction(btn, '/import/map-item', {existing_id: sel.value, quantity_sold: qty});
+}
+</script>
 {% endblock %}

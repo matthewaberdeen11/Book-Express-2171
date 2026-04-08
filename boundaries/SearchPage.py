@@ -59,7 +59,7 @@ class SearchPage:
 
     def auto_refresh_results(self):
         """Auto-refresh results when inventory changes."""
-        pass  # Would be implemented with JavaScript polling
+        pass  # implemented with JavaScript polling
 
     def show_error(self, message: str):
         """Display an error message to the user."""

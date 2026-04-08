@@ -31,6 +31,9 @@ class ZohoCSVAdapter:
         records = []
         try:
             reader = csv.DictReader(io.StringIO(file_content))
+            # Strip whitespace from headers (handles space-aligned CSVs)
+            if reader.fieldnames:
+                reader.fieldnames = [f.strip() for f in reader.fieldnames]
             # Validate required columns exist
             if reader.fieldnames:
                 missing = self.REQUIRED_COLUMNS - set(reader.fieldnames)

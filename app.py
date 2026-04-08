@@ -15,7 +15,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from database import init_db
 from boundaries.CSVImportPage import CSVImportPage
 from boundaries.SearchPage import SearchPage
@@ -163,16 +163,12 @@ def create_item():
     item_id = request.form.get("item_id", "").strip()
     item_name = request.form.get("item_name", "").strip() or f"New Item {item_id}"
     unit_price = float(request.form.get("average_price", 0))
-    quantity_sold = int(float(request.form.get("quantity_sold", 0)))
     grade = request.form.get("grade", "").strip()
     subject = request.form.get("subject", "").strip()
 
-    # Check if it already exists
     if InventoryItem.find_by_id(item_id):
-        flash(f"Item '{item_id}' already exists in catalogue.", "error")
-        return redirect(url_for("inventory"))
+        return jsonify(success=False, message=f"Item '{item_id}' already exists.")
 
-    # Create with initial stock of 0, then the sold quantity is a deficit
     InventoryItem.create_new(
         item_id=item_id,
         item_name=item_name,
@@ -181,8 +177,7 @@ def create_item():
         grade=grade,
         subject=subject
     )
-    flash(f"Created new catalogue entry: {item_id} - {item_name}", "success")
-    return redirect(url_for("inventory"))
+    return jsonify(success=True, message=f"Created: {item_id} - {item_name}")
 
 
 @app.route("/import/map-item", methods=["POST"])
@@ -193,15 +188,12 @@ def map_item():
 
     item = InventoryItem.find_by_id(existing_id)
     if item is None:
-        flash(f"Target item '{existing_id}' not found.", "error")
-        return redirect(url_for("inventory"))
+        return jsonify(success=False, message=f"Item '{existing_id}' not found.")
 
     if not item.deduct_quantity(quantity_sold):
-        flash(f"Cannot deduct {quantity_sold} from {existing_id} (stock: {item.stock_quantity}).", "error")
-    else:
-        flash(f"Mapped sale and deducted {quantity_sold} from {existing_id} ({item.item_name}).", "success")
+        return jsonify(success=False, message=f"Insufficient stock on {existing_id} ({item.stock_quantity} left).")
 
-    return redirect(url_for("inventory"))
+    return jsonify(success=True, message=f"Mapped & deducted {quantity_sold} from {existing_id}.")
 
 
 # ============================================================

@@ -1,5 +1,5 @@
 """
-earch Controller for handling search-related operations in the inventory management system
+Search Controller for handling search-related operations in the inventory management system
 Orchestrates UC-002: Check Item Availability workflow.
 Maps to SearchController on the class diagram.
 """
@@ -78,7 +78,7 @@ class SearchController:
         if item is None:
             return None
 
-        # Log the detail view
+        #log the detail view
         audit = AuditLog(
             user_id=user_id,
             action="view_item_details",
@@ -93,7 +93,7 @@ class SearchController:
         return item.get_availability_status()
 
     def detect_inventory_change(self, item: InventoryItem) -> bool:
-        """Check if item data has changed since last retrieved (for auto-refresh)."""
+        #Check if item data has changed since last retrieved (for auto-refresh)
         current = InventoryItem.find_by_id(item.item_id)
         if current is None:
             return True

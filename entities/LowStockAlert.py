@@ -76,3 +76,30 @@ class LowStockAlert:
 
     def __repr__(self):
         return f"LowStockAlert(item={self.item_id}, qty={self.current_quantity}, status={self.status})"
+
+    @staticmethod
+    def find_by_id(alert_id: int):
+        """Look up an alert by its ID."""
+        conn = get_connection()
+        row = conn.execute(
+            "SELECT * FROM low_stock_alert WHERE alert_id = ?", (alert_id,)
+        ).fetchone()
+        conn.close()
+        if row:
+            return LowStockAlert(
+                alert_id=row["alert_id"], item_id=row["item_id"],
+                current_quantity=row["current_quantity"],
+                threshold=row["threshold"],
+                created_at=row["created_at"], status=row["status"]
+            )
+        return None
+
+    def _save(self):
+        """Persist current state to database."""
+        conn = get_connection()
+        conn.execute("""
+            UPDATE low_stock_alert SET status = ?, current_quantity = ?
+            WHERE alert_id = ?
+        """, (self.status, self.current_quantity, self.alert_id))
+        conn.commit()
+        conn.close()

@@ -127,6 +127,62 @@ def item_detail(item_id):
 
     return render_template("item_detail.html", item=details)
 
+# ============================================================
+# UC-004: Low Stock Alerts (via AlertDashboard Boundary)
+# ============================================================
+
+@app.route("/alerts")
+def alerts():
+    from boundaries.AlertDashboard import AlertDashboard
+    boundary = AlertDashboard()
+    active_alerts = boundary.view_alerts()
+    return render_template("alerts.html", alerts=active_alerts, scan_result=None)
+
+
+@app.route("/alerts/scan")
+def alerts_scan():
+    from boundaries.AlertDashboard import AlertDashboard
+    boundary = AlertDashboard()
+    scan_result = boundary.run_stock_check()
+    active_alerts = boundary.view_alerts()
+    return render_template("alerts.html", alerts=active_alerts, scan_result=scan_result)
+
+
+@app.route("/alerts/acknowledge/<int:alert_id>", methods=["POST"])
+def acknowledge_alert(alert_id):
+    from boundaries.AlertDashboard import AlertDashboard
+    boundary = AlertDashboard()
+    result = boundary.acknowledge_alert(alert_id)
+    if result["success"]:
+        flash(result["message"], "success")
+    else:
+        flash(result["error"], "error")
+    return redirect(url_for("alerts"))
+
+
+@app.route("/alerts/resolve/<int:alert_id>", methods=["POST"])
+def resolve_alert(alert_id):
+    from boundaries.AlertDashboard import AlertDashboard
+    boundary = AlertDashboard()
+    result = boundary.resolve_alert(alert_id)
+    if result["success"]:
+        flash(result["message"], "success")
+    else:
+        flash(result["error"], "error")
+    return redirect(url_for("alerts"))
+
+
+# ============================================================
+# UC-006: View Business Insights (via AnalyticsDashboard Boundary)
+# ============================================================
+
+@app.route("/analytics")
+def analytics():
+    from boundaries.AnalyticsDashboard import AnalyticsDashboard
+    boundary = AnalyticsDashboard()
+    dashboard_data = boundary.load_dashboard()
+    return render_template("analytics.html", data=dashboard_data)
+
 
 # ============================================================
 # Supporting pages

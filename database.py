@@ -68,7 +68,17 @@ def init_db():
             details TEXT
         )
     """)
-
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS favourites (
+            favourite_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            item_id TEXT NOT NULL,
+            added_at TEXT NOT NULL,
+            UNIQUE(user_id, item_id),
+            FOREIGN KEY (item_id) REFERENCES inventory_item(item_id)
+        )
+    """)
+    
     # Seed sample data if empty
     c.execute("SELECT COUNT(*) FROM inventory_item")
     if c.fetchone()[0] == 0:

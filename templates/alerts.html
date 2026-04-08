@@ -1,5 +1,3 @@
-<!-- Alerts Template -->
-
 {% extends "base.html" %}
 {% set active_page = 'alerts' %}
 {% block title %}Low Stock Alerts - Book Express{% endblock %}
@@ -8,11 +6,40 @@
     <h1>Low Stock Alerts</h1>
     <p>Items that have fallen below their reorder thresholds</p>
 </div>
-<div class="catalogue-container">
+
+<div class="catalogue-container" style="margin-bottom:1.5rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+        <h2><i class="fas fa-exclamation-triangle" style="color:var(--warning-color)"></i> Active Alerts ({{ alerts|length }})</h2>
+        <div style="display:flex;gap:8px">
+            <a href="/alerts/scan" class="btn-primary"><i class="fas fa-sync-alt"></i> Run Stock Check</a>
+        </div>
+    </div>
+
+    {% if scan_result %}
+    <div style="padding:1rem;border-radius:8px;margin-bottom:16px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3)">
+        <p style="color:var(--success-color);font-weight:600"><i class="fas fa-check-circle"></i> Stock scan complete</p>
+        <p style="color:var(--text-secondary);font-size:.85rem;margin-top:4px">
+            Items scanned: {{ scan_result.items_scanned }} |
+            New alerts: {{ scan_result.alerts_generated }} |
+            Total active: {{ scan_result.total_active_alerts }}
+        </p>
+    </div>
+    {% endif %}
+
     {% if alerts %}
     <div class="catalogue-table-wrapper">
         <table class="alerts-table">
-            <thead><tr><th>Item ID</th><th>Name</th><th>Current Stock</th><th>Threshold</th><th>Status</th><th>Date Created</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Item ID</th>
+                    <th>Name</th>
+                    <th>Current Stock</th>
+                    <th>Threshold</th>
+                    <th>Status</th>
+                    <th>Date Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
             <tbody>
                 {% for a in alerts %}
                 <tr>
@@ -20,8 +47,32 @@
                     <td>{{ a.item_name }}</td>
                     <td style="color:var(--danger-color);font-weight:600">{{ a.current_quantity }}</td>
                     <td>{{ a.threshold }}</td>
-                    <td><span class="alert-status alert-active">{{ a.status }}</span></td>
+                    <td>
+                        {% if a.status == 'active' %}
+                            <span class="alert-status alert-active">Active</span>
+                        {% elif a.status == 'acknowledged' %}
+                            <span style="display:inline-block;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:600;background:rgba(245,158,11,.2);color:var(--warning-color)">Acknowledged</span>
+                        {% else %}
+                            <span class="badge badge-green">{{ a.status }}</span>
+                        {% endif %}
+                    </td>
                     <td>{{ a.created_at[:19] }}</td>
+                    <td style="display:flex;gap:6px">
+                        {% if a.status == 'active' %}
+                        <form action="/alerts/acknowledge/{{ a.alert_id }}" method="POST" style="margin:0">
+                            <button type="submit" class="btn-secondary" style="padding:5px 10px;font-size:12px" title="Acknowledge">
+                                <i class="fas fa-check"></i> Acknowledge
+                            </button>
+                        </form>
+                        {% endif %}
+                        {% if a.status != 'resolved' %}
+                        <form action="/alerts/resolve/{{ a.alert_id }}" method="POST" style="margin:0">
+                            <button type="submit" class="btn-primary" style="padding:5px 10px;font-size:12px" title="Resolve">
+                                <i class="fas fa-check-double"></i> Resolve
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

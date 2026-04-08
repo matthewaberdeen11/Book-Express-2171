@@ -125,7 +125,25 @@ def init_db():
             reorder_threshold INTEGER NOT NULL DEFAULT 5,
             grade TEXT,
             subject TEXT,
-            availability_status TEXT DEFAULT 'In Stock'
+            availability_status TEXT DEFAULT 'In Stock',
+            is_archived INTEGER NOT NULL DEFAULT 0
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS sales_record (
+            sale_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_id TEXT NOT NULL,
+            item_name TEXT NOT NULL,
+            quantity_sold INTEGER NOT NULL,
+            unit_price REAL NOT NULL,
+            total_amount REAL NOT NULL,
+            sale_source TEXT NOT NULL DEFAULT 'Zoho CSV Import',
+            import_log_id INTEGER,
+            sold_by TEXT,
+            timestamp TEXT NOT NULL,
+            FOREIGN KEY (item_id) REFERENCES inventory_item(item_id),
+            FOREIGN KEY (import_log_id) REFERENCES import_log(log_id)
         )
     """)
 
@@ -167,12 +185,19 @@ def init_db():
         CREATE TABLE IF NOT EXISTS inventory_adjustment (
             adjustment_id INTEGER PRIMARY KEY AUTOINCREMENT,
             item_id TEXT NOT NULL,
-            type TEXT NOT NULL,
-            quantity_changed INTEGER NOT NULL,
-            message TEXT,
+            change_category TEXT NOT NULL,
+            user_id TEXT NOT NULL,
+            reason TEXT,
+            notes TEXT,
+            previous_quantity INTEGER,
+            new_quantity INTEGER,
+            adjustment_amount INTEGER,
+            previous_price REAL,
+            new_price REAL,
+            effective_date TEXT NOT NULL,
             timestamp TEXT NOT NULL,
             FOREIGN KEY (item_id) REFERENCES inventory_item(item_id)
-            )
+        )
     """)
 
     # Seed sample data if empty

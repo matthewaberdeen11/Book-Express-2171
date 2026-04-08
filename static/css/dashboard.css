@@ -122,3 +122,23 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:va
     .catalogue-toolbar,.alerts-toolbar,.inventory-toolbar{flex-direction:column}
     .stat-grid{grid-template-columns:1fr 1fr}
 }
+.btn-danger{
+    padding:10px 20px;
+    border:none;
+    border-radius:6px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all .3s ease;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    text-decoration:none;
+    background-color:var(--danger-color);
+    color:#fff;
+}
+.btn-danger:hover{
+    background-color:#dc2626;
+    transform:translateY(-1px);
+    box-shadow:0 4px 12px rgba(239,68,68,.3);
+}

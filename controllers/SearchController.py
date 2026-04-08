@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from entities.InventoryItem import InventoryItem
 from entities.AuditLog import AuditLog
 from entities.InventoryAdjustment import InventoryAdjustment
+from entities.SalesRecord import SalesRecord
 
 
 class SearchController:
@@ -78,10 +79,13 @@ class SearchController:
         item = InventoryItem.find_by_id(item_id)
         if item is None:
             return None
-        
-        historyLogs = InventoryAdjustment.get_recent_for_item_as_dicts(item_id)
 
-        # Log the detail view
+        adjustment_logs = InventoryAdjustment.get_recent_for_item_as_dicts(item_id)
+        sales_logs = SalesRecord.get_recent_for_item_as_dicts(item_id)
+
+        adjustment_logs.sort(key=lambda x: x["timestamp"], reverse=True)
+        sales_logs.sort(key=lambda x: x["timestamp"], reverse=True)
+
         audit = AuditLog(
             user_id=user_id,
             action="view_item_details",
@@ -89,10 +93,11 @@ class SearchController:
         )
         audit.create_entry()
 
-        itemWithHistory = item.get_details()
-        itemWithHistory["history"] = historyLogs
+        item_with_history = item.get_details()
+        item_with_history["history"] = adjustment_logs
+        item_with_history["sales_history"] = sales_logs
 
-        return itemWithHistory
+        return item_with_history
 
     def check_stock_status(self, item: InventoryItem) -> str:
         """Return stock status string for an item."""

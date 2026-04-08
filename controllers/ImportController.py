@@ -7,6 +7,7 @@ BCE flow: CSVImportPage (Boundary) -> ImportController (Control) -> Entities
 """
 
 import sys, os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from datetime import datetime
@@ -16,6 +17,7 @@ from entities.ImportLog import ImportLog
 from entities.ImportSummaryReport import ImportSummaryReport
 from entities.LowStockAlert import LowStockAlert
 from entities.InventoryAdjustment import InventoryAdjustment
+from entities.SalesRecord import SalesRecord
 
 
 class ImportController:
@@ -76,10 +78,6 @@ class ImportController:
             else:
                 self.make_adjustment_history(item, qty)
 
-            # Step x: Check price discrepancy
-            if self.check_price_discrepancy(item, record["average_price"]) and record["average_price"] > 0:
-                report.add_error(f"Price discrepancy for {item_id}: CSV ${record['average_price']} vs DB ${item.unit_price}.")
-
             # Price discrepancy check (>10% difference)
             if csv_price > 0 and self.check_price_discrepancy(item, csv_price):
                 report.add_price_discrepancy(item_id, item.item_name, item.unit_price, csv_price)
@@ -89,8 +87,6 @@ class ImportController:
 
             # Step 4: Check low stock
             self.check_low_stock(item)
-
-            # Step x: Add adjustment history
 
         # Step 6: Log import
         self.log_import(report, file_content, total_sales)
@@ -104,15 +100,22 @@ class ImportController:
         """Deduct quantity from item stock."""
         return item.deduct_quantity(qty)
     
-    def make_adjustment_history(self, item: InventoryItem, qty: int) -> None:
-        """Create an adjustment history entry for this stock change."""
-        adjustment = InventoryAdjustment(
-            item_id=item.item_id,
-            type="sale",
-            quantity_changed=-qty,
-            message=f"Deducted {qty} for a sale on {self.import_date}"
-        )
-        adjustment.create_entry()
+    def record_sale(self, item: InventoryItem, qty: int) -> None:
+        """Create a SalesRecord entry and deduct stock."""
+
+        sale = SalesRecord(
+        item_id=item.item_id,
+        item_name=item.item_name,
+        quantity_sold=qty,
+        unit_price=item.unit_price,
+        total_amount=qty * item.unit_price,
+        sale_source="Zoho CSV Import",
+        import_log_id=self.import_log_id,
+        sold_by="system_import",
+        timestamp=self.import_date
+    )
+
+        sale.create_entry()
 
     def check_price_discrepancy(self, item: InventoryItem, csv_price: float) -> bool:
         """Check if price differs by more than 10%."""

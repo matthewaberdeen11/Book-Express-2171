@@ -20,6 +20,8 @@ from database import init_db
 from boundaries.CSVImportPage import CSVImportPage
 from boundaries.SearchPage import SearchPage
 from boundaries.ItemDetailView import ItemDetailView
+from boundaries.EditItemView import EditItemView
+from boundaries.CreateItemView import CreateItemView
 from entities.InventoryItem import InventoryItem
 from entities.ImportLog import ImportLog
 from entities.LowStockAlert import LowStockAlert
@@ -127,6 +129,70 @@ def item_detail(item_id):
 
     return render_template("item_detail.html", item=details)
 
+
+# ============================================================
+# UC-003: Manage Inventory Records
+# ============================================================
+
+@app.route("/item/<item_id>/edit", methods=["GET", "POST"])
+def edit_item(item_id):
+    boundary = EditItemView()
+    user_id = "staff_001"  # replace later with logged-in user if available
+
+    if request.method == "POST":
+        success = boundary.submit_edit(item_id, request.form, user_id=user_id)
+
+        if success:
+            flash("Item updated successfully.", "success")
+            return redirect(url_for("item_detail", item_id=item_id))
+
+        for error in boundary.get_validation_errors():
+            flash(error, "error")
+
+    item = boundary.load_item_for_edit(item_id, user_id=user_id)
+
+    if item is None:
+        flash(f"Item '{item_id}' not found.", "error")
+        return redirect(url_for("search_page"))
+
+    return render_template("item_edit.html", item=item)
+
+
+@app.route("/item/<item_id>/delete", methods=["POST"])
+def delete_item(item_id):
+    from controllers.InventoryController import InventoryController
+
+    controller = InventoryController()
+    user_id = "staff_001"  # replace with logged-in user later
+
+    success = controller.delete_item(item_id, user_id=user_id)
+
+    if success:
+        flash(f"Item '{item_id}' deleted successfully.", "success")
+        return redirect(url_for("search_page"))
+
+    for error in controller.get_validation_errors():
+        flash(error, "error")
+
+    return redirect(url_for("item_detail", item_id=item_id))
+
+
+@app.route("/item/create", methods=["GET", "POST"])
+def create_item_from_ui():
+    boundary = CreateItemView()
+    user_id = "staff_001"  # replace with logged-in user later
+
+    if request.method == "POST":
+        created_item = boundary.submit_create(request.form, user_id=user_id)
+
+        if created_item:
+            flash(f"Item '{created_item.item_id}' created successfully.", "success")
+            return redirect(url_for("item_detail", item_id=created_item.item_id))
+
+        for error in boundary.get_validation_errors():
+            flash(error, "error")
+
+    return render_template("create_item.html")
 
 # ============================================================
 # Supporting pages

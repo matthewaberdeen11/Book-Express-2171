@@ -42,11 +42,6 @@ class ZohoCSVAdapter:
                     item_id = row.get("item_id", "").strip()
                     item_name = row.get("item_name", "").strip()
                     qty_raw = row.get("quantity_sold", "").strip()
-<<<<<<< HEAD
-                    price_raw = row.get("average_price", "").strip()
-=======
-
->>>>>>> origin/matthew
                     if not item_id:
                         self.errors.append(f"Row {i}: missing item_id")
                         continue
@@ -63,12 +58,8 @@ class ZohoCSVAdapter:
                         "unit": row.get("unit", "").strip(),
                         "is_combo_product": row.get("is_combo_product", "").strip().lower() == "true",
                         "quantity_sold": int(float(qty_raw)),
-<<<<<<< HEAD
-                        "average_price": float(price_raw) if price_raw else 0.0
-=======
                         "amount": float(row.get("amount", "0").strip() or "0"),
                         "average_price": float(row.get("average_price", "0").strip() or "0"),
->>>>>>> origin/matthew
                     })
                 except ValueError:
                     self.errors.append(f"Row {i}: invalid numeric value")

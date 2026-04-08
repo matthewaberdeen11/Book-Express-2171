@@ -1,10 +1,4 @@
 """
-earch Controller for handling search-related operations in the inventory management system
-Orchestrates UC-002: Check Item Availability workflow.
-Maps to SearchController on the class diagram.
-"""
-
-"""
 SearchController <<Control>>
 Orchestrates UC-002: Check Item Availability workflow.
 Maps to SearchController on the class diagram.

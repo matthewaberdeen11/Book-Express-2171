@@ -1,7 +1,7 @@
-item_id,quantity_sold
-BK001,3
-BK003,2
-BK005,10
-BK007,1
-BK009,4
-BK010,2
+item_id,item_name,unit,is_combo_product,quantity_sold,amount,average_price
+BK001,Mathematics for Grade 1,pcs,false,3,4500.00,1500.00
+BK003,Science Explorer Grade 2,pcs,false,2,3600.00,1800.00
+BK005,Reading Comprehension Grade 2,pcs,false,10,11000.00,1100.00
+BK007,Art & Craft Supplies Kit,pcs,false,1,900.00,900.00
+BK011,Physical Education Workbook,pcs,false,2,2700.00,1350.00
+BK012,Music Theory Grade 5,pcs,false,1,1100.00,1100.00

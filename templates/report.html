@@ -12,6 +12,7 @@
     <div class="stat-card"><div class="stat-value">{{ report.total_processed }}</div><div class="stat-label">Records Processed</div></div>
     <div class="stat-card"><div class="stat-value" style="color:var(--success-color)">{{ report.success_count }}</div><div class="stat-label">Successful</div></div>
     <div class="stat-card"><div class="stat-value" style="color:var(--warning-color)">{{ report.unrecognised_count }}</div><div class="stat-label">Unrecognised</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:orange">{{ report.price_discrepancy_count }}</div><div class="stat-label">Price Discrepancies</div></div>
     <div class="stat-card"><div class="stat-value" style="color:var(--danger-color)">{{ report.error_count }}</div><div class="stat-label">Errors</div></div>
 </div>
 {% if report.successful_updates %}
@@ -26,7 +27,58 @@
 {% if report.unrecognised_items %}
 <div class="catalogue-container" style="margin-bottom:1rem">
     <h2 style="color:var(--warning-color);margin-bottom:12px"><i class="fas fa-question-circle"></i> Unrecognised Items</h2>
-    {% for uid in report.unrecognised_items %}<p style="padding:.4rem 0;border-bottom:1px solid var(--border-color)"><span class="badge badge-yellow">Unknown</span> <code style="color:var(--primary-color)">{{ uid }}</code></p>{% endfor %}
+    {% for rec in report.unrecognised_items %}
+    <div style="padding:1rem;border-bottom:1px solid var(--border-color);display:flex;flex-wrap:wrap;align-items:center;gap:1rem">
+        <div style="flex:1;min-width:200px">
+            <span class="badge badge-yellow">Unknown</span>
+            <code style="color:var(--primary-color);font-weight:600">{{ rec.item_id }}</code>
+            {% if rec.item_name %}<span style="margin-left:.5rem">{{ rec.item_name }}</span>{% endif %}
+            <span style="font-size:.8rem;color:#888;display:block;margin-top:4px">
+                Qty: {{ rec.quantity_sold }}
+                {% if rec.average_price %} | Avg Price: ${{ "%.2f"|format(rec.average_price) }}{% endif %}
+                {% if rec.amount %} | Amount: ${{ "%.2f"|format(rec.amount) }}{% endif %}
+            </span>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <!-- Auto-Create -->
+            <form action="/import/create-item" method="POST" style="display:inline">
+                <input type="hidden" name="item_id" value="{{ rec.item_id }}">
+                <input type="hidden" name="item_name" value="{{ rec.item_name }}">
+                <input type="hidden" name="average_price" value="{{ rec.average_price }}">
+                <input type="hidden" name="quantity_sold" value="{{ rec.quantity_sold }}">
+                <button type="submit" class="btn-primary" style="font-size:.8rem;padding:6px 12px">
+                    <i class="fas fa-plus-circle"></i> Auto-Create
+                </button>
+            </form>
+            <!-- Map to Existing -->
+            <form action="/import/map-item" method="POST" style="display:inline-flex;align-items:center;gap:4px">
+                <input type="hidden" name="quantity_sold" value="{{ rec.quantity_sold }}">
+                <select name="existing_id" style="padding:5px 8px;border:1px solid var(--border-color);border-radius:6px;font-size:.8rem">
+                    <option value="">Map to…</option>
+                    {% for item in all_items %}
+                    <option value="{{ item.item_id }}">{{ item.item_id }} - {{ item.item_name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn-secondary" style="font-size:.8rem;padding:6px 12px">
+                    <i class="fas fa-link"></i> Map
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% if report.price_discrepancies %}
+<div class="catalogue-container" style="margin-bottom:1rem">
+    <h2 style="color:orange;margin-bottom:12px"><i class="fas fa-exclamation-triangle"></i> Price Discrepancies (&gt;10%)</h2>
+    <table class="catalogue-table">
+        <thead><tr><th>Item ID</th><th>Name</th><th>System Price</th><th>CSV Price</th><th>Difference</th></tr></thead>
+        <tbody>{% for d in report.price_discrepancies %}<tr>
+            <td>{{ d.item_id }}</td><td>{{ d.item_name }}</td>
+            <td>${{ "%.2f"|format(d.system_price) }}</td><td>${{ "%.2f"|format(d.csv_price) }}</td>
+            <td style="color:var(--danger-color);font-weight:600">${{ "%.2f"|format(d.csv_price - d.system_price) }}</td>
+        </tr>{% endfor %}</tbody>
+    </table>
 </div>
 {% endif %}
 {% if report.errors %}

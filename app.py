@@ -74,7 +74,8 @@ def process_import():
 
     return render_template("report.html",
                            report=report.to_dict(),
-                           filename=file.filename)
+                           filename=file.filename,
+                           all_items=InventoryItem.get_all())
 
 
 # ============================================================
@@ -150,6 +151,57 @@ def logs():
     return render_template("logs.html",
                            import_logs=import_logs,
                            audit_logs=audit_logs)
+
+
+# ============================================================
+# Unrecognised Item Actions
+# ============================================================
+
+@app.route("/import/create-item", methods=["POST"])
+def create_item():
+    """Auto-create a new catalogue entry from unrecognised CSV data."""
+    item_id = request.form.get("item_id", "").strip()
+    item_name = request.form.get("item_name", "").strip() or f"New Item {item_id}"
+    unit_price = float(request.form.get("average_price", 0))
+    quantity_sold = int(float(request.form.get("quantity_sold", 0)))
+    grade = request.form.get("grade", "").strip()
+    subject = request.form.get("subject", "").strip()
+
+    # Check if it already exists
+    if InventoryItem.find_by_id(item_id):
+        flash(f"Item '{item_id}' already exists in catalogue.", "error")
+        return redirect(url_for("inventory"))
+
+    # Create with initial stock of 0, then the sold quantity is a deficit
+    InventoryItem.create_new(
+        item_id=item_id,
+        item_name=item_name,
+        unit_price=unit_price,
+        stock_quantity=0,
+        grade=grade,
+        subject=subject
+    )
+    flash(f"Created new catalogue entry: {item_id} - {item_name}", "success")
+    return redirect(url_for("inventory"))
+
+
+@app.route("/import/map-item", methods=["POST"])
+def map_item():
+    """Map an unrecognised item_id to an existing catalogue entry and deduct stock."""
+    existing_id = request.form.get("existing_id", "").strip()
+    quantity_sold = int(float(request.form.get("quantity_sold", 0)))
+
+    item = InventoryItem.find_by_id(existing_id)
+    if item is None:
+        flash(f"Target item '{existing_id}' not found.", "error")
+        return redirect(url_for("inventory"))
+
+    if not item.deduct_quantity(quantity_sold):
+        flash(f"Cannot deduct {quantity_sold} from {existing_id} (stock: {item.stock_quantity}).", "error")
+    else:
+        flash(f"Mapped sale and deducted {quantity_sold} from {existing_id} ({item.item_name}).", "success")
+
+    return redirect(url_for("inventory"))
 
 
 # ============================================================

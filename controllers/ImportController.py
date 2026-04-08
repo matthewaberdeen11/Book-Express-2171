@@ -61,11 +61,12 @@ class ImportController:
         for record in records:
             item_id = record["item_id"]
             qty = record["quantity_sold"]
+            csv_price = record.get("average_price", 0)
 
             # Step 2: Match item
             item = self.match_item(item_id)
             if item is None:
-                report.add_unrecognised(item_id)
+                report.add_unrecognised(record)
                 continue
 
             # Step 3: Deduct stock
@@ -79,7 +80,11 @@ class ImportController:
             if self.check_price_discrepancy(item, record["average_price"]) and record["average_price"] > 0:
                 report.add_error(f"Price discrepancy for {item_id}: CSV ${record['average_price']} vs DB ${item.unit_price}.")
 
-            total_sales += item.unit_price * qty
+            # Price discrepancy check (>10% difference)
+            if csv_price > 0 and self.check_price_discrepancy(item, csv_price):
+                report.add_price_discrepancy(item_id, item.item_name, item.unit_price, csv_price)
+
+            total_sales += record.get("amount", item.unit_price * qty)
             report.add_success(item_id, item.item_name, qty)
 
             # Step 4: Check low stock

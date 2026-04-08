@@ -26,6 +26,8 @@ from entities.InventoryItem import InventoryItem
 from entities.ImportLog import ImportLog
 from entities.LowStockAlert import LowStockAlert
 from entities.AuditLog import AuditLog
+from entities.FavouriteItem import FavouriteItem
+from controllers.InventoryController import InventoryController
 
 app = Flask(__name__)
 app.secret_key = "book-express-dev-key"
@@ -40,7 +42,16 @@ def index():
     items = InventoryItem.get_all()
     alerts = LowStockAlert.get_active_alerts()
     logs = ImportLog.get_recent(5)
-    return render_template("index.html", items=items, alerts=alerts, logs=logs)
+    favourites = FavouriteItem.get_all()
+    favourite_ids = {fav["item_id"] for fav in favourites}
+    return render_template(
+        "index.html",
+        items=items,
+        alerts=alerts,
+        logs=logs,
+        favourites=favourites,
+        favourite_ids=favourite_ids
+    )
 
 
 # ============================================================
@@ -127,7 +138,7 @@ def item_detail(item_id):
         flash(f"Item '{item_id}' not found.", "error")
         return redirect(url_for("search_page"))
 
-    return render_template("item_detail.html", item=details)
+    return render_template("item_detail.html", item=details["item"], is_favourited=details["is_favourited"])
 
 
 # ============================================================
@@ -160,8 +171,6 @@ def edit_item(item_id):
 
 @app.route("/item/<item_id>/delete", methods=["POST"])
 def delete_item(item_id):
-    from controllers.InventoryController import InventoryController
-
     controller = InventoryController()
     user_id = "staff_001"  # replace with logged-in user later
 
@@ -193,6 +202,35 @@ def create_item_from_ui():
             flash(error, "error")
 
     return render_template("create_item.html")
+
+# ============================================================
+# UC-005: Access Frequently Used Items
+# ============================================================
+
+@app.route("/item/<item_id>/favourite", methods=["POST"])
+def add_item_to_favourites(item_id):
+    boundary = ItemDetailView()
+    result = boundary.add_to_favourites(item_id, user_id="staff_001")
+
+    if result["success"]:
+        flash(result["message"], "success")
+    else:
+        flash(result["error"], "error")
+
+    return redirect(url_for("item_detail", item_id=item_id))
+
+
+@app.route("/item/<item_id>/unfavourite", methods=["POST"])
+def remove_item_from_favourites(item_id):
+    boundary = ItemDetailView()
+    result = boundary.remove_from_favourites(item_id, user_id="staff_001")
+
+    if result["success"]:
+        flash(result["message"], "success")
+    else:
+        flash(result["error"], "error")
+
+    return redirect(url_for("item_detail", item_id=item_id))
 
 # ============================================================
 # Supporting pages

@@ -148,6 +148,15 @@ def init_db():
     """)
 
     c.execute("""
+        CREATE TABLE IF NOT EXISTS favourite_item (
+            item_id TEXT PRIMARY KEY,
+            added_by TEXT NOT NULL,
+            added_at TEXT NOT NULL,
+            FOREIGN KEY (item_id) REFERENCES inventory_item(item_id)
+        )
+    """)
+
+    c.execute("""
         CREATE TABLE IF NOT EXISTS import_log (
             log_id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp TEXT NOT NULL,

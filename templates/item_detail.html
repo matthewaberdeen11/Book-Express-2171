@@ -13,8 +13,22 @@
     <p>Item Details &mdash; {{ item.item_id }}</p>
 </div>
 
-<div style="display:flex;gap:12px;margin-bottom:24px">
-    <a href="/item/{{ item.item_id }}/edit" class="btn-primary">
+<div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap">
+    {% if is_favourited %}
+    <form method="POST" action="/item/{{ item.item_id }}/unfavourite" style="margin:0">
+        <button type="submit" class="btn-secondary">
+            <i class="fas fa-star"></i> Remove from Favourites
+        </button>
+    </form>
+    {% else %}
+    <form method="POST" action="/item/{{ item.item_id }}/favourite" style="margin:0">
+        <button type="submit" class="btn-secondary">
+            <i class="far fa-star"></i> Add to Favourites
+        </button>
+    </form>
+    {% endif %}
+
+    <a href="/item/{{ item.item_id }}/edit" class="btn-secondary">
         <i class="fas fa-edit"></i> Edit
     </a>
 

@@ -302,12 +302,6 @@ def inventory():
     return render_template("inventory.html", items=items)
 
 
-@app.route("/alerts")
-def alerts():
-    active_alerts = LowStockAlert.get_active_alerts()
-    return render_template("alerts.html", alerts=active_alerts)
-
-
 @app.route("/logs")
 def logs():
     import_logs = ImportLog.get_recent(20)

@@ -35,12 +35,17 @@
     <h3 style="margin-bottom:12px;color:var(--text-secondary)">{{ results|length }} result{{ 's' if results|length != 1 }} found</h3>
     <div class="catalogue-table-wrapper">
         <table class="catalogue-table">
-            <thead><tr><th>Item ID</th><th>Title</th><th>Grade</th><th>Subject</th><th>Price (JMD)</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Item ID</th><th></th><th>Title</th><th>Grade</th><th>Subject</th><th>Price (JMD)</th><th>Stock</th><th>Status</th><th></th></tr></thead>
             <tbody>
                 {% if results %}
                 {% for item in results %}
                 <tr>
                     <td>{{ item.item_id }}</td>
+                    <td style="text-align:center;width:10px">
+                        {% if item.is_favourited %}
+                            <i class="fas fa-star" style="color:#f5b301"></i>
+                        {% endif %}
+                    </td>
                     <td class="item-title" style="cursor:pointer;color:var(--primary-color)" onclick="window.location='/item/{{ item.item_id }}'">{{ item.item_name }}</td>
                     <td>{{ item.grade }}</td><td>{{ item.subject }}</td>
                     <td>{{ "%.2f"|format(item.unit_price) }}</td><td>{{ item.stock_quantity }}</td>

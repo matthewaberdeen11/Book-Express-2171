@@ -44,18 +44,113 @@
     <a href="/import" class="btn-primary"><i class="fas fa-upload"></i> Import CSV</a>
     <a href="/search" class="btn-secondary"><i class="fas fa-search"></i> Search Inventory</a>
 </div>
-<div class="catalogue-container">
-    <h2 style="margin-bottom:16px">Inventory Overview</h2>
+<div class="catalogue-container" style="margin-bottom:24px">
+    <h2 style="margin-bottom:16px"><i class="fas fa-star"></i> Favourites</h2>
+
+    {% if favourites %}
     <div class="catalogue-table-wrapper">
         <table class="catalogue-table">
-            <thead><tr><th>ID</th><th>Name</th><th>Grade</th><th>Price (JMD)</th><th>Stock</th><th>Status</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th></th>
+                    <th>Name</th>
+                    <th>Grade</th>
+                    <th>Price (JMD)</th>
+                    <th>Stock</th>
+                    <th>Stock Level</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fav in favourites %}
+                <tr>
+                    <td>
+                        <a href="/item/{{ fav.item_id }}" style="color:var(--primary-color);text-decoration:none">
+                            {{ fav.item_id }}
+                        </a>
+                    </td>
+                     <td style="text-align:center;width:10px">
+                            <i class="fas fa-star" style="color:#f5b301"></i>
+                    </td>
+                    <td>
+                        {{ fav.item_name }}
+                    </td>
+                    <td>{{ fav.grade }}</td>
+                    <td>{{ "%.2f"|format(fav.unit_price) }}</td>
+                    <td>{{ fav.stock_quantity }}</td>
+                    <td>
+                        {% if fav.stock_quantity == 0 %}
+                            <span class="badge badge-red">Out of Stock</span>
+                        {% elif fav.stock_quantity <= fav.reorder_threshold %}
+                            <span class="badge badge-yellow">Low Stock</span>
+                        {% else %}
+                            <span class="badge badge-green">In Stock</span>
+                        {% endif %}
+                    </td>
+                    <td><a href="/item/{{ fav.item_id }}" class="btn-secondary" style="padding:6px 12px;font-size:12px"><i class="fas fa-eye"></i> View</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color:var(--text-secondary)">No favourited items yet.</p>
+    {% endif %}
+</div>
+<div class="catalogue-container">
+    <h2 style="margin-bottom:16px">Inventory Overview</h2>
+
+    <div class="catalogue-table-wrapper">
+        <table class="catalogue-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th></th>
+                    <th>Name</th>
+                    <th>Grade</th>
+                    <th>Price (JMD)</th>
+                    <th>Stock</th>
+                    <th>Stock Level</th>
+                    <th></th>
+                </tr>
+            </thead>
+
             <tbody>
                 {% for item in items %}
                 <tr>
-                    <td><a href="/item/{{ item.item_id }}" style="color:var(--primary-color);text-decoration:none">{{ item.item_id }}</a></td>
-                    <td>{{ item.item_name }}</td><td>{{ item.grade }}</td>
-                    <td>{{ "%.2f"|format(item.unit_price) }}</td><td>{{ item.stock_quantity }}</td>
-                    <td>{% if item.stock_quantity == 0 %}<span class="badge badge-red">Out of Stock</span>{% elif item.stock_quantity <= item.reorder_threshold %}<span class="badge badge-yellow">Low Stock</span>{% else %}<span class="badge badge-green">In Stock</span>{% endif %}</td>
+                    <td>
+                        <a href="/item/{{ item.item_id }}"
+                           style="color:var(--primary-color);text-decoration:none">
+                            {{ item.item_id }}
+                        </a>
+                    </td>
+
+                    <td style="text-align:center;width:10px">
+                        {% if item.item_id in favourite_ids %}
+                            <i class="fas fa-star" style="color:#f5b301"></i>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ item.item_name }}</td>
+
+                    <td>{{ item.grade }}</td>
+
+                    <td>{{ "%.2f"|format(item.unit_price) }}</td>
+
+                    <td>{{ item.stock_quantity }}</td>
+
+                    <td>
+                        {% if item.stock_quantity == 0 %}
+                            <span class="badge badge-red">Out of Stock</span>
+                        {% elif item.stock_quantity <= item.reorder_threshold %}
+                            <span class="badge badge-yellow">Low Stock</span>
+                        {% else %}
+                            <span class="badge badge-green">In Stock</span>
+                        {% endif %}
+                    </td>
+
+                    <td><a href="/item/{{ item.item_id }}" class="btn-secondary" style="padding:6px 12px;font-size:12px"><i class="fas fa-eye"></i> View</a></td>
                 </tr>
                 {% endfor %}
             </tbody>

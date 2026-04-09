@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% set active_page = 'search' %}
+{% block title %}Edit {{ item.item_name }} - Book Express{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1rem">
+    <a href="{{ url_for('item_detail', item_id=item.item_id) }}" style="color:var(--primary-color);text-decoration:none;font-size:.9rem">
+        <i class="fas fa-arrow-left"></i> Back to Item Details
+    </a>
+</div>
+
+<div class="section-header">
+    <h1>Edit Inventory Record</h1>
+    <p>Update catalogue details and stock adjustments for {{ item.item_name }} &mdash; {{ item.item_id }}</p>
+</div>
+
+<form method="POST" action="{{ url_for('edit_item', item_id=item.item_id) }}">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start">
+        
+        <div class="detail-card" style="height:100%">
+            <h2><i class="fas fa-edit"></i> Catalogue Information</h2>
+
+            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:1rem">
+                <label for="item_id" class="detail-label">Item ID</label>
+                <input
+                    type="text"
+                    id="item_id"
+                    name="item_id"
+                    value="{{ item.item_id }}"
+                    readonly
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:#f5f5f5;color:var(--text-secondary)"
+                >
+            </div>
+
+            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:1rem">
+                <label for="item_name" class="detail-label">Book Title</label>
+                <input
+                    type="text"
+                    id="item_name"
+                    name="item_name"
+                    value="{{ item.item_name }}"
+                    required
+                    maxlength="255"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
+                >
+            </div>
+
+            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:1rem">
+                <label for="grade" class="detail-label">Grade Level</label>
+                <input
+                    type="text"
+                    id="grade"
+                    name="grade"
+                    value="{{ item.grade }}"
+                    required
+                    maxlength="50"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
+                >
+            </div>
+
+            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:1rem">
+                <label for="subject" class="detail-label">Subject Category</label>
+                <input
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    value="{{ item.subject }}"
+                    required
+                    maxlength="100"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
+                >
+            </div>
+
+            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:1rem">
+                <label for="unit_price" class="detail-label">Unit Price (JMD)</label>
+                <input
+                    type="number"
+                    id="unit_price"
+                    name="unit_price"
+                    value="{{ '%.2f'|format(item.unit_price) }}"
+                    step="0.01"
+                    min="0"
+                    required
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
+                >
+            </div>
+
+            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:0">
+                <label for="is_archived" class="detail-label">Record Status</label>
+                <select
+                    id="is_archived"
+                    name="is_archived"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
+                >
+                    <option value="0" {% if not item.is_archived %}selected{% endif %}>Active</option>
+                    <option value="1" {% if item.is_archived %}selected{% endif %}>Archived</option>
+                </select>
+                <small style="color:var(--text-secondary)">
+                    Items should only be archived when stock quantity is zero.
+                </small>
+            </div>
+        </div>
+
+        <div class="detail-card" style="height:100%">
+            <h2><i class="fas fa-boxes"></i> Manual Inventory Adjustment</h2>
+
+            <div class="detail-row" style="margin-bottom:1rem">
+                <span class="detail-label">Current Stock</span>
+                <span class="detail-value">{{ item.stock_quantity }}</span>
+            </div>
+
+            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:1rem">
+                <label for="adjustment_value" class="detail-label">Adjustment Value</label>
+                <input
+                    type="number"
+                    id="adjustment_value"
+                    name="adjustment_value"
+                    value="0"
+                    step="1"
+                    placeholder="e.g. 5 or -3"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
+                >
+                <small style="color:var(--text-secondary)">
+                    Enter a positive whole number to increase stock or a negative whole number to decrease stock.
+                </small>
+            </div>
+
+            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:1rem">
+                <label for="adjustment_reason" class="detail-label">Adjustment Reason</label>
+                <select
+                    id="adjustment_reason"
+                    name="adjustment_reason"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,102,255,.1);color:var(--text-primary)"
+                >
+                    <option value="">Select a reason</option>
+                    <option value="Damaged">Damaged</option>
+                    <option value="Customer Return">Customer Return</option>
+                    <option value="Stock Correction">Stock Correction</option>
+                    <option value="Theft/Loss">Theft/Loss</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="detail-row" style="align-items:flex-start;flex-direction:column;gap:.4rem;margin-bottom:0">
+                <label for="adjustment_notes" class="detail-label">Additional Notes</label>
+                <textarea
+                    id="adjustment_notes"
+                    name="adjustment_notes"
+                    rows="6"
+                    maxlength="500"
+                    placeholder="Optional notes (maximum 500 characters)"
+                    style="width:100%;padding:.75rem;border:1px solid var(--border-color);border-radius:8px;resize:vertical;background:rgba(0,102,255,.1);color:var(--text-primary)"
+                ></textarea>
+            </div>
+        </div>
+
+        <div class="detail-card" style="grid-column:1 / -1;background:rgba(255,193,7,.08)">
+            <h2><i class="fas fa-info-circle"></i> Archival Rule</h2>
+            <p style="margin:0;color:var(--text-secondary)">
+                Items with transaction history or non-zero stock should not be deleted. Reduce stock to zero and assign archival status instead.
+            </p>
+        </div>
+
+        {% if item.history %}
+        <div class="detail-card" style="grid-column:1 / -1">
+            <h2><i class="fas fa-history"></i> Recent Adjustment History</h2>
+
+            <div style="overflow-x:auto">
+                <table style="width:100%;border-collapse:collapse;font-size:.9rem">
+                    <thead style="background:var(--background-secondary)">
+                        <tr>
+                            <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--border-color)">Date / Time</th>
+                            <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--border-color)">User</th>
+                            <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--border-color)">Type</th>
+                            <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--border-color)">Quantity Change</th>
+                            <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--border-color)">Stock Level</th>
+                            <th style="text-align:left;padding:.75rem;border-bottom:1px solid var(--border-color)">Notes</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for entry in item.history %}
+                        <tr style="border-bottom:1px solid var(--border-color)">
+
+                            <td style="padding:.75rem">
+                                {{ entry.timestamp[:10] }} {{ entry.timestamp[11:16] }}
+                            </td>
+
+                            <td style="padding:.75rem">
+                                {{ entry.user_id if entry.user_id else "-" }}
+                            </td>
+
+                            <td style="padding:.75rem">
+                                <span class="badge">
+                                    {{ entry.reason if entry.reason else entry.change_category or entry.type }}
+                                </span>
+                            </td>
+
+                            {% set qty_color = 'var(--text-secondary)' %}
+                            {% if entry.adjustment_amount is not none %}
+                                {% if entry.adjustment_amount > 0 %}
+                                    {% set qty_color = 'var(--success-color)' %}
+                                {% elif entry.adjustment_amount < 0 %}
+                                    {% set qty_color = 'var(--danger-color)' %}
+                                {% else %}
+                                    {% set qty_color = 'var(--text-secondary)' %}
+                                {% endif %}
+                            {% endif %}
+
+                            <td style="padding:.75rem;font-weight:600;color:{{ qty_color }};">
+                                {% if entry.adjustment_amount is not none %}
+                                    {% if entry.adjustment_amount > 0 %}+{% endif %}{{ entry.adjustment_amount }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+
+                            <td style="padding:.75rem">
+                                {% if entry.previous_quantity is not none and entry.new_quantity is not none %}
+                                    {{ entry.previous_quantity }} → {{ entry.new_quantity }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+
+                            <td style="padding:.75rem;color:var(--text-secondary)">
+                                {{ entry.notes if entry.notes else entry.message }}
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="grid-column:1 / -1;display:flex;justify-content:flex-end;gap:.75rem;flex-wrap:wrap;margin-top:.25rem">
+            <a href="{{ url_for('item_detail', item_id=item.item_id) }}" class="btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}

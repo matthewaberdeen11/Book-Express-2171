@@ -10,6 +10,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from controllers.FavouriteController import FavouriteController
 from controllers.SearchController import SearchController
 
 
@@ -19,15 +20,31 @@ class ItemDetailView:
         self.current_item = None
         self.is_refreshing = False
 
+    def add_to_favourites(self, item_id: str, user_id: str = "staff_001"):
+        """Delegate add-to-favourites action to FavouriteController."""
+        controller = FavouriteController()
+        return controller.add_to_favourites(item_id, user_id)
+    
+    def remove_from_favourites(self, item_id: str, user_id: str = "staff_001"):
+        """Delegate remove-from-favourites action to FavouriteController."""
+        controller = FavouriteController()
+        return controller.remove_from_favourites(item_id, user_id)
+
     def display_details(self, item_id: str, user_id: str = "staff_001"):
         """
         Delegate to SearchController to get item details.
         This is the key BCE handoff: Boundary → Controller.
         Maps to <<include>> View Item Details in UC-002.
         """
-        controller = SearchController()
-        self.current_item = controller.get_item_details(item_id, user_id)
-        return self.current_item
+        search_controller = SearchController()
+        self.current_item = search_controller.get_item_details(item_id, user_id)
+
+        favourite_controller = FavouriteController()
+        
+        return{
+            "item": self.current_item,
+            "is_favourited": favourite_controller.is_favourited(item_id)
+        } 
 
     def show_stock_status(self, quantity: int, status: str):
         """Display stock status with appropriate styling."""

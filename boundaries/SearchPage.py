@@ -11,6 +11,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from controllers.SearchController import SearchController
+from controllers.FavouriteController import FavouriteController
 
 
 class SearchPage:
@@ -34,20 +35,46 @@ class SearchPage:
         This is the key BCE handoff: Boundary → Controller.
         """
         self.search_query = query
-        controller = SearchController()
-        results = controller.search_inventory(query, user_id)
+
+        search_controller = SearchController()
+        results = search_controller.search_inventory(query, user_id)
         self.results_visible = True
+        
+        favourite_ids = self.get_favourites()
+
+        for item in results:
+            item.is_favourited = item.item_id in favourite_ids
+
         return results
 
     def filter_by_grade(self, grade: str):
         """Delegate grade filter to SearchController."""
         controller = SearchController()
-        return controller.filter_by_grade(grade)
+        results = controller.filter_by_grade(grade)
+
+        favourite_ids = self.get_favourites()
+
+        for item in results:
+            item.is_favourited = item.item_id in favourite_ids
+
+        return results
 
     def filter_by_subject(self, subject: str):
         """Delegate subject filter to SearchController."""
         controller = SearchController()
-        return controller.filter_by_subject(subject)
+        results = controller.filter_by_subject(subject)
+
+        favourite_ids = self.get_favourites()
+
+        for item in results:
+            item.is_favourited = item.item_id in favourite_ids
+
+        return results
+
+    def get_favourites(self):
+        """Delegate to FavouriteController to get favourite items."""
+        favourite_controller = FavouriteController()
+        return favourite_controller.get_favourite_ids()
 
     def display_results(self, results):
         """Display search results to the user."""

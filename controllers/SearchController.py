@@ -1,10 +1,4 @@
 """
-Search Controller for handling search-related operations in the inventory management system
-Orchestrates UC-002: Check Item Availability workflow.
-Maps to SearchController on the class diagram.
-"""
-
-"""
 SearchController <<Control>>
 Orchestrates UC-002: Check Item Availability workflow.
 Maps to SearchController on the class diagram.
@@ -18,6 +12,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from entities.InventoryItem import InventoryItem
 from entities.AuditLog import AuditLog
+from entities.InventoryAdjustment import InventoryAdjustment
+from entities.SalesRecord import SalesRecord
 
 
 class SearchController:
@@ -78,6 +74,12 @@ class SearchController:
         if item is None:
             return None
 
+        adjustment_logs = InventoryAdjustment.get_recent_for_item_as_dicts(item_id)
+        sales_logs = SalesRecord.get_recent_for_item_as_dicts(item_id)
+
+        adjustment_logs.sort(key=lambda x: x["timestamp"], reverse=True)
+        sales_logs.sort(key=lambda x: x["timestamp"], reverse=True)
+
         #log the detail view
         audit = AuditLog(
             user_id=user_id,
@@ -86,7 +88,11 @@ class SearchController:
         )
         audit.create_entry()
 
-        return item.get_details()
+        item_with_history = item.get_details()
+        item_with_history["history"] = adjustment_logs
+        item_with_history["sales_history"] = sales_logs
+
+        return item_with_history
 
     def check_stock_status(self, item: InventoryItem) -> str:
         """Return stock status string for an item."""

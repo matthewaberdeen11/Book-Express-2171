@@ -1,5 +1,4 @@
 #datbase template 
-
 """
 database.py - Database initialization and connection management.
 Handles SQLite setup, table creation, and sample data seeding.
@@ -7,6 +6,7 @@ Handles SQLite setup, table creation, and sample data seeding.
 
 import sqlite3
 import os
+import random
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "book_express.db")
 
@@ -16,6 +16,100 @@ def get_connection():
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
+
+
+def generate_inventory_items(
+    record_count=100,
+    price_min=1000,
+    price_max=5000,
+    quantity_min=0,
+    quantity_max=100,
+    reorder_min=5,
+    reorder_max=20,
+):
+    subjects = [
+        "Mathematics", "English", "Science", "Social Studies", "History",
+        "Geography", "Spanish", "French", "Biology", "Chemistry",
+        "Physics", "Accounting", "Economics", "Information Technology",
+        "Religious Education", "Art", "Music", "Literature", "Language Arts",
+        "Integrated Science", "Computer Science", "Business Studies"
+    ]
+
+    prefixes = [
+        "Introduction to", "Fundamentals of", "Essentials of", "Principles of",
+        "Advanced", "Applied", "Practical", "Modern", "Complete", "Interactive",
+        "Illustrated", "Comprehensive", "Core", "Mastering", "Understanding"
+    ]
+
+    middles = [
+        "for", "in", "of", "through", "with", "and", "Workbook for",
+        "Guide to", "Studies in", "Skills in", "Activities in"
+    ]
+
+    levels = [
+        "Beginners", "Intermediate Learners", "Advanced Learners",
+        "Primary Level", "Secondary Level", "Junior Students",
+        "Senior Students", "Examination Prep", "Student Workbook",
+        "Practice Manual", "Revision Course", "Foundations", "Mastery Level"
+    ]
+
+    editions = [
+        "1st Edition", "2nd Edition", "3rd Edition", "Revised Edition",
+        "Updated Edition", "Student Edition", "School Edition", "Teacher Edition"
+    ]
+
+    tags = [
+        "Workbook", "Textbook", "Practice Book", "Study Guide",
+        "Revision Book", "Activity Book", "Companion", "Handbook"
+    ]
+
+    connectors = ["of", "for", "in", "with", "through", "and"]
+
+    records = []
+
+    for i in range(1, record_count + 1):
+        subject = random.choice(subjects)
+        grade_num = random.randint(1, 13)
+        grade = f"Grade {grade_num}"
+
+        # Price in steps of 50
+        price = random.randrange(price_min, price_max + 50, 50)
+
+        quantity = random.randint(quantity_min, quantity_max)
+        reorder_threshold = random.randint(reorder_min, reorder_max)
+
+        # Build a more varied item name
+        pattern = random.randint(1, 6)
+
+        if pattern == 1:
+            item_name = f"{random.choice(prefixes)} {subject} {random.choice(middles)} {grade}"
+        elif pattern == 2:
+            item_name = f"{subject} {random.choice(tags)} {random.choice(connectors)} {grade}"
+        elif pattern == 3:
+            item_name = f"{random.choice(prefixes)} {subject}: {random.choice(levels)} for {grade}"
+        elif pattern == 4:
+            item_name = f"{subject} {random.choice(tags)} - {random.choice(editions)}"
+        elif pattern == 5:
+            item_name = f"{random.choice(prefixes)} {subject} {random.choice(connectors)} {random.choice(levels)}"
+        else:
+            item_name = f"{subject} for {grade} - {random.choice(tags)} ({random.choice(editions)})"
+
+        item_id = f"BK{i:05d}"
+
+        availability_status = "In Stock" if quantity > 0 else "Out of Stock"
+
+        records.append((
+            item_id,
+            item_name,
+            price,
+            quantity,
+            reorder_threshold,
+            grade,
+            subject,
+            availability_status
+        ))
+
+    return records
 
 
 def init_db():
@@ -31,7 +125,34 @@ def init_db():
             reorder_threshold INTEGER NOT NULL DEFAULT 5,
             grade TEXT,
             subject TEXT,
-            availability_status TEXT DEFAULT 'In Stock'
+            availability_status TEXT DEFAULT 'In Stock',
+            is_archived INTEGER NOT NULL DEFAULT 0
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS sales_record (
+            sale_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_id TEXT NOT NULL,
+            item_name TEXT NOT NULL,
+            quantity_sold INTEGER NOT NULL,
+            unit_price REAL NOT NULL,
+            total_amount REAL NOT NULL,
+            sale_source TEXT NOT NULL DEFAULT 'Zoho CSV Import',
+            import_log_id INTEGER,
+            sold_by TEXT,
+            timestamp TEXT NOT NULL,
+            FOREIGN KEY (item_id) REFERENCES inventory_item(item_id),
+            FOREIGN KEY (import_log_id) REFERENCES import_log(log_id)
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS favourite_item (
+            item_id TEXT PRIMARY KEY,
+            added_by TEXT NOT NULL,
+            added_at TEXT NOT NULL,
+            FOREIGN KEY (item_id) REFERENCES inventory_item(item_id)
         )
     """)
 
@@ -78,27 +199,61 @@ def init_db():
             FOREIGN KEY (item_id) REFERENCES inventory_item(item_id)
         )
     """)
-    
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS inventory_adjustment (
+            adjustment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_id TEXT NOT NULL,
+            change_category TEXT NOT NULL,
+            user_id TEXT NOT NULL,
+            reason TEXT,
+            notes TEXT,
+            previous_quantity INTEGER,
+            new_quantity INTEGER,
+            adjustment_amount INTEGER,
+            previous_price REAL,
+            new_price REAL,
+            effective_date TEXT NOT NULL,
+            timestamp TEXT NOT NULL,
+            FOREIGN KEY (item_id) REFERENCES inventory_item(item_id)
+        )
+    """)
+
+
     # Seed sample data if empty
     c.execute("SELECT COUNT(*) FROM inventory_item")
     if c.fetchone()[0] == 0:
-        sample = [
-            ("BK001", "Mathematics for Grade 1", 1500.00, 50, 10, "Grade 1", "Mathematics"),
-            ("BK002", "English Language Grade 1", 1200.00, 35, 8, "Grade 1", "English"),
-            ("BK003", "Science Explorer Grade 2", 1800.00, 20, 10, "Grade 2", "Science"),
-            ("BK004", "Social Studies Grade 3", 1400.00, 15, 5, "Grade 3", "Social Studies"),
-            ("BK005", "Reading Comprehension Grade 2", 1100.00, 8, 10, "Grade 2", "English"),
-            ("BK006", "Advanced Mathematics Grade 4", 2000.00, 40, 10, "Grade 4", "Mathematics"),
-            ("BK007", "Art & Craft Supplies Kit", 900.00, 60, 15, "All", "Art"),
-            ("BK008", "Geography Workbook Grade 5", 1600.00, 12, 5, "Grade 5", "Geography"),
-            ("BK009", "Spanish Beginner Grade 3", 1300.00, 25, 8, "Grade 3", "Spanish"),
-            ("BK010", "History of Jamaica Grade 6", 1750.00, 30, 10, "Grade 6", "History"),
-        ]
+        RECORD_COUNT = 28
+
+        PRICE_MIN = 1000
+        PRICE_MAX = 5000
+
+        QUANTITY_MIN = 30
+        QUANTITY_MAX = 200
+
+        REORDER_MIN = 5
+        REORDER_MAX = 25
+
+        sample = generate_inventory_items(
+            record_count=RECORD_COUNT,
+            price_min=PRICE_MIN,
+            price_max=PRICE_MAX,
+            quantity_min=QUANTITY_MIN,
+            quantity_max=QUANTITY_MAX,
+            reorder_min=REORDER_MIN,
+            reorder_max=REORDER_MAX
+        )
+
         c.executemany(
-            "INSERT INTO inventory_item (item_id, item_name, unit_price, stock_quantity, reorder_threshold, grade, subject) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            """
+            INSERT INTO inventory_item
+            (item_id, item_name, unit_price, stock_quantity, reorder_threshold, grade, subject, availability_status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
             sample
         )
-        print("Seeded 10 sample inventory items.")
+
+        print(f"Seeded {RECORD_COUNT} inventory items.")
 
     conn.commit()
     conn.close()

@@ -45,7 +45,6 @@ class ZohoCSVAdapter:
                     item_id = row.get("item_id", "").strip()
                     item_name = row.get("item_name", "").strip()
                     qty_raw = row.get("quantity_sold", "").strip()
-
                     if not item_id:
                         self.errors.append(f"Row {i}: missing item_id")
                         continue

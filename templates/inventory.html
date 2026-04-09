@@ -8,14 +8,24 @@
     <h1>Inventory</h1>
     <p>Current catalogue and stock levels</p>
 </div>
+<div style="display:flex;gap:12px;margin-bottom:24px">
+    <a href="/item/create" class="btn-primary">
+        <i class="fas fa-plus"></i> Add Item
+    </a>
+</div>
 <div class="catalogue-container">
     <div class="catalogue-table-wrapper">
         <table class="catalogue-table">
-            <thead><tr><th>ID</th><th>Name</th><th>Grade</th><th>Subject</th><th>Price (JMD)</th><th>Stock</th><th>Threshold</th><th>Status</th></tr></thead>
+            <thead><tr><th>ID</th><th></th><th>Name</th><th>Grade</th><th>Subject</th><th>Price (JMD)</th><th>Stock</th><th>Threshold</th><th>Stock Level</th></tr></thead>
             <tbody>
                 {% for item in items %}
                 <tr>
                     <td><a href="/item/{{ item.item_id }}" style="color:var(--primary-color);text-decoration:none">{{ item.item_id }}</a></td>
+                    <td style="text-align:center;width:10px">
+                        {% if item.is_favourited %}
+                            <i class="fas fa-star" style="color:#f5b301"></i>
+                        {% endif %}
+                    </td>
                     <td>{{ item.item_name }}</td><td>{{ item.grade }}</td><td>{{ item.subject }}</td>
                     <td>{{ "%.2f"|format(item.unit_price) }}</td><td>{{ item.stock_quantity }}</td><td>{{ item.reorder_threshold }}</td>
                     <td>{% if item.stock_quantity == 0 %}<span class="badge badge-red">Out of Stock</span>{% elif item.stock_quantity <= item.reorder_threshold %}<span class="badge badge-yellow">Low Stock</span>{% else %}<span class="badge badge-green">In Stock</span>{% endif %}</td>

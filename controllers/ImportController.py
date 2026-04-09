@@ -7,6 +7,7 @@ BCE flow: CSVImportPage (Boundary) -> ImportController (Control) -> Entities
 """
 
 import sys, os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from datetime import datetime
@@ -15,6 +16,8 @@ from entities.InventoryItem import InventoryItem
 from entities.ImportLog import ImportLog
 from entities.ImportSummaryReport import ImportSummaryReport
 from entities.LowStockAlert import LowStockAlert
+from entities.InventoryAdjustment import InventoryAdjustment
+from entities.SalesRecord import SalesRecord
 
 
 class ImportController:
@@ -72,6 +75,8 @@ class ImportController:
             if not self.deduct_stock(item, qty):
                 report.add_error(f"Cannot deduct {qty} from {item_id} (stock: {item.stock_quantity})")
                 continue
+            else:
+                self.make_adjustment_history(item, qty)
 
             # Price discrepancy check (>10% difference)
             if csv_price > 0 and self.check_price_discrepancy(item, csv_price):
@@ -94,6 +99,23 @@ class ImportController:
     def deduct_stock(self, item: InventoryItem, qty: int) -> bool:
         """Deduct quantity from item stock."""
         return item.deduct_quantity(qty)
+    
+    def record_sale(self, item: InventoryItem, qty: int) -> None:
+        """Create a SalesRecord entry and deduct stock."""
+
+        sale = SalesRecord(
+        item_id=item.item_id,
+        item_name=item.item_name,
+        quantity_sold=qty,
+        unit_price=item.unit_price,
+        total_amount=qty * item.unit_price,
+        sale_source="Zoho CSV Import",
+        import_log_id=self.import_log_id,
+        sold_by="system_import",
+        timestamp=self.import_date
+    )
+
+        sale.create_entry()
 
     def check_price_discrepancy(self, item: InventoryItem, csv_price: float) -> bool:
         """Check if price differs by more than 10%."""

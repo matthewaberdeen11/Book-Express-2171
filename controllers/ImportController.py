@@ -29,6 +29,7 @@ class ImportController:
         self.import_date: str = ""
         self.error_list: list = []
         self.unrecognised_items: list = []
+        self.import_log_id: int = None
 
     def process_import(self, file_content: str, user_id: str) -> ImportSummaryReport:
         """
@@ -58,12 +59,14 @@ class ImportController:
 
         report.total_processed = len(records)
         total_sales = 0.0
+        sales_to_record = []  # Collect sales for batch processing after loop
 
         # Steps 2-4: Process each record
         for record in records:
             item_id = record["item_id"]
             qty = record["quantity_sold"]
             csv_price = record.get("average_price", 0)
+            amount = record.get("amount", 0)
 
             # Step 2: Match item
             item = self.match_item(item_id)
@@ -76,7 +79,7 @@ class ImportController:
                 report.add_error(f"Cannot deduct {qty} from {item_id} (stock: {item.stock_quantity})")
                 continue
             else:
-                self.make_adjustment_history(item, qty)
+                sales_to_record.append((item, qty, amount))
 
             # Price discrepancy check (>10% difference)
             if csv_price > 0 and self.check_price_discrepancy(item, csv_price):
@@ -90,6 +93,11 @@ class ImportController:
 
         # Step 6: Log import
         self.log_import(report, file_content, total_sales)
+
+        #Step 7: Record sales after processing all records to ensure log is created before sales records reference it
+        for item, qty, amount in sales_to_record:
+            self.record_sale(item, qty, amount)
+
         return report
 
     def match_item(self, item_id: str) -> InventoryItem:
@@ -100,7 +108,7 @@ class ImportController:
         """Deduct quantity from item stock."""
         return item.deduct_quantity(qty)
     
-    def record_sale(self, item: InventoryItem, qty: int) -> None:
+    def record_sale(self, item: InventoryItem, qty: int, amount: float) -> None:
         """Create a SalesRecord entry and deduct stock."""
 
         sale = SalesRecord(
@@ -108,7 +116,7 @@ class ImportController:
         item_name=item.item_name,
         quantity_sold=qty,
         unit_price=item.unit_price,
-        total_amount=qty * item.unit_price,
+        total_amount=amount,
         sale_source="Zoho CSV Import",
         import_log_id=self.import_log_id,
         sold_by="system_import",
@@ -146,4 +154,5 @@ class ImportController:
             error_count=len(report.errors)
         )
         log.create_log()
+        self.import_log_id = log.log_id
         return log

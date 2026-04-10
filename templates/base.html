@@ -33,6 +33,11 @@
                         <li><a href="/logs" class="menu-item {% if active_page == 'logs' %}active{% endif %}"><span class="icon"><i class="fas fa-history"></i></span> Logs</a></li>
                     </ul>
                 </div>
+                <div class="menu-section" style="margin-top:auto;border-top:1px solid var(--border-color);padding-top:20px">
+                    <ul>
+                        <li><a href="/logout" class="menu-item" style="color:var(--danger-color)"><span class="icon"><i class="fas fa-sign-out-alt"></i></span> Logout</a></li>
+                    </ul>
+                </div>
             </nav>
         </aside>
         <main class="main-content">
@@ -40,10 +45,10 @@
                 <button class="sidebar-toggle" id="sidebarToggle">&#9776;</button>
                 <div class="topbar-right">
                     <div class="user-profile">
-                        <div class="user-avatar">S</div>
+                        <div class="user-avatar">{{ session.user.username[0]|upper }}</div>
                         <div class="user-info">
-                            <p class="user-name">Staff</p>
-                            <p class="user-role">Manager</p>
+                            <p class="user-name">{{ session.user.username }}</p>
+                            <p class="user-role">{{ session.user.role }}</p>
                         </div>
                     </div>
                 </div>

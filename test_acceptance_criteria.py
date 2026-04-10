@@ -82,7 +82,7 @@ def _seed_extra_items(count, start_id=100):
             grade=f"Grade {i % 6 + 1}",
             subject="Mathematics",
         )
-
+ 
 
 # ===================================================================
 #  UC-001  Import Daily Sales

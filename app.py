@@ -10,7 +10,8 @@ This keeps the BCE pattern explicit:
   - Controllers orchestrate workflows
   - Entities hold data
 """
-
+from functools import wraps
+from flask import session
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -33,11 +34,21 @@ app = Flask(__name__)
 app.secret_key = "book-express-dev-key"
 
 
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("user"):
+            return redirect(url_for("login_page"))
+        return f(*args, **kwargs)
+    return decorated
+
+
 # ============================================================
 # Dashboard
 # ============================================================
 
 @app.route("/")
+@login_required
 def index():
     items = InventoryItem.get_all()
     alerts = LowStockAlert.get_active_alerts()
@@ -59,11 +70,13 @@ def index():
 # ============================================================
 
 @app.route("/import", methods=["GET"])
+@login_required
 def import_page():
     return render_template("import.html")
 
 
 @app.route("/import", methods=["POST"])
+@login_required
 def process_import():
     """Flask route → CSVImportPage boundary → ImportController."""
     if "csv_file" not in request.files:
@@ -96,6 +109,7 @@ def process_import():
 # ============================================================
 
 @app.route("/search", methods=["GET"])
+@login_required
 def search_page():
     """Flask route → SearchPage boundary → SearchController."""
     query = request.args.get("q", "").strip()
@@ -129,6 +143,7 @@ def search_page():
 # ============================================================
 
 @app.route("/item/<item_id>")
+@login_required
 def item_detail(item_id):
     """Flask route → ItemDetailView boundary → SearchController."""
     boundary = ItemDetailView()
@@ -145,6 +160,7 @@ def item_detail(item_id):
 # ============================================================
 
 @app.route("/alerts")
+@login_required
 def alerts():
     from boundaries.AlertDashboard import AlertDashboard
     boundary = AlertDashboard()
@@ -153,6 +169,7 @@ def alerts():
 
 
 @app.route("/alerts/scan")
+@login_required
 def alerts_scan():
     from boundaries.AlertDashboard import AlertDashboard
     boundary = AlertDashboard()
@@ -162,6 +179,7 @@ def alerts_scan():
 
 
 @app.route("/alerts/acknowledge/<int:alert_id>", methods=["POST"])
+@login_required
 def acknowledge_alert(alert_id):
     from boundaries.AlertDashboard import AlertDashboard
     boundary = AlertDashboard()
@@ -174,6 +192,7 @@ def acknowledge_alert(alert_id):
 
 
 @app.route("/alerts/resolve/<int:alert_id>", methods=["POST"])
+@login_required
 def resolve_alert(alert_id):
     from boundaries.AlertDashboard import AlertDashboard
     boundary = AlertDashboard()
@@ -190,6 +209,7 @@ def resolve_alert(alert_id):
 # ============================================================
 
 @app.route("/analytics")
+@login_required
 def analytics():
     from boundaries.AnalyticsDashboard import AnalyticsDashboard
     boundary = AnalyticsDashboard()
@@ -202,6 +222,7 @@ def analytics():
 # ============================================================
 
 @app.route("/item/<item_id>/edit", methods=["GET", "POST"])
+@login_required
 def edit_item(item_id):
     boundary = EditItemView()
     user_id = "staff_001"  # replace later with logged-in user if available
@@ -226,6 +247,7 @@ def edit_item(item_id):
 
 
 @app.route("/item/<item_id>/delete", methods=["POST"])
+@login_required
 def delete_item(item_id):
     controller = InventoryController()
     user_id = "staff_001"  # replace with logged-in user later
@@ -243,6 +265,7 @@ def delete_item(item_id):
 
 
 @app.route("/item/create", methods=["GET", "POST"])
+@login_required
 def create_item_from_ui():
     boundary = CreateItemView()
     user_id = "staff_001"  # replace with logged-in user later
@@ -264,6 +287,7 @@ def create_item_from_ui():
 # ============================================================
 
 @app.route("/item/<item_id>/favourite", methods=["POST"])
+@login_required
 def add_item_to_favourites(item_id):
     boundary = ItemDetailView()
     result = boundary.add_to_favourites(item_id, user_id="staff_001")
@@ -277,6 +301,7 @@ def add_item_to_favourites(item_id):
 
 
 @app.route("/item/<item_id>/unfavourite", methods=["POST"])
+@login_required
 def remove_item_from_favourites(item_id):
     boundary = ItemDetailView()
     result = boundary.remove_from_favourites(item_id, user_id="staff_001")
@@ -293,6 +318,7 @@ def remove_item_from_favourites(item_id):
 # ============================================================
 
 @app.route("/inventory")
+@login_required
 def inventory():
     items = InventoryItem.get_all()
     favourites = FavouriteItem.get_all_ids()
@@ -303,6 +329,7 @@ def inventory():
 
 
 @app.route("/logs")
+@login_required
 def logs():
     import_logs = ImportLog.get_recent(20)
     audit_logs = AuditLog.get_recent(20)
@@ -316,6 +343,7 @@ def logs():
 # ============================================================
 
 @app.route("/import/create-item", methods=["POST"])
+@login_required
 def create_item():
     """Auto-create a new catalogue entry from unrecognised CSV data."""
     item_id = request.form.get("item_id", "").strip()
@@ -339,6 +367,7 @@ def create_item():
 
 
 @app.route("/import/map-item", methods=["POST"])
+@login_required
 def map_item():
     """Map an unrecognised item_id to an existing catalogue entry and deduct stock."""
     existing_id = request.form.get("existing_id", "").strip()
@@ -353,6 +382,29 @@ def map_item():
 
     return jsonify(success=True, message=f"Mapped & deducted {quantity_sold} from {existing_id}.")
 
+@app.route("/login", methods=["GET"])
+def login_page():
+    if session.get("user"):
+        return redirect(url_for("index"))
+    return render_template("login.html", error=None)
+
+@app.route("/login", methods=["POST"])
+def login():
+    from boundaries.LoginPage import LoginPage
+    boundary = LoginPage()
+    result = boundary.authenticate(
+        request.form.get("username", ""),
+        request.form.get("password", "")
+    )
+    if result["success"]:
+        session["user"] = {"username": result["username"], "role": result["role"]}
+        return redirect(url_for("index"))
+    return render_template("login.html", error=result["error"])
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login_page"))
 
 # ============================================================
 # Initialize and run

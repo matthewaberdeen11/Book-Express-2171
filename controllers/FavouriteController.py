@@ -20,10 +20,15 @@ from entities.AuditLog import AuditLog
 
 class FavouriteController:
 
+    MAX_FAVOURITES = 50
+
     def add_to_favourites(self, item_id: str, user_id: str = "staff_001") -> dict:
         item = InventoryItem.find_by_id(item_id)
         if item is None:
             return {"success": False, "error": f"Item '{item_id}' not found."}
+
+        if FavouriteItem.count() >= self.MAX_FAVOURITES:
+            return {"success": False, "error": f"Cannot add more than {self.MAX_FAVOURITES} items to favourites."}
 
         success, message = FavouriteItem.add(item_id, user_id)
         if not success:
